@@ -1,0 +1,5 @@
+{
+  "name": "PrimeReact Starter",
+  "description": "A React application built with Vite, Tailwind CSS, and PrimeReact components.",
+  "requestFramePermissions": []
+}
