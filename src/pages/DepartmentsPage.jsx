@@ -74,6 +74,7 @@ const DepartmentsPage = () => {
                   placeholder="Which school's department?" 
                   className="w-full rounded-2xl border-slate-200"
                   required
+                  filter
                 />
               </div>
               <div className="flex flex-col gap-2.5">

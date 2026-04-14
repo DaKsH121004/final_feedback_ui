@@ -169,6 +169,7 @@ const FacultyPage = () => {
                   placeholder="Select Departments"
                   className="w-full rounded-2xl"
                   display="chip"
+                  filter
                 />
               </div>
             </div>
