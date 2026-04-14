@@ -2,7 +2,7 @@ import axios from "axios";
 import { createApi } from "@reduxjs/toolkit/query/react";
 
 const axiosBaseQuery =
-  ({ baseUrl } = { baseUrl: import.meta.env.VITE_API_BASE_URL }) =>
+  ({ baseUrl } = { baseUrl: "https://feedback-api-gcbr.onrender.com/api/v1" }) =>
   async ({ url, method, data, params, headers }) => {
     try {
       const result = await axios({
@@ -27,7 +27,7 @@ const axiosBaseQuery =
   };
 
 export const api = createApi({
-  baseQuery: axiosBaseQuery({ baseUrl: import.meta.env.VITE_API_BASE_URL }),
+  baseQuery: axiosBaseQuery({ baseUrl: "https://feedback-api-gcbr.onrender.com/api/v1" }),
   endpoints: (builder) => ({
     login: builder.mutation({
       query: (credentials) => ({
