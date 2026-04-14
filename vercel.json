@@ -1,8 +1,5 @@
 {
-  "routes": [
-    {
-      "src": "/(.*)",
-      "destination": "/"
-    }
+  "rewrites": [
+    { "source": "/((?!assets|.*\\..*).*)", "destination": "/" }
   ]
 }
