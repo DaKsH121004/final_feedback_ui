@@ -45,8 +45,6 @@ const FeedbackList = () => {
 
   const downloadExcel = () => {
   const dataToExport = (data?.feedbacks || []).map((row) => ({
-    Student: row.studentName,
-    RollNo: row.studentRollNo,
 
     School: row.school?.schoolName || "N/A",
     Department: row.department?.departmentName || "N/A",
