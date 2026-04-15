@@ -5,6 +5,8 @@ import { Column } from 'primereact/column';
 import { Tag } from 'primereact/tag';
 import { useGetAllFeedbacksQuery } from '../services/api';
 import { motion } from 'motion/react';
+import { Button } from 'primereact/button';
+import * as XLSX from 'xlsx';
 
 const FeedbackList = () => {
 
@@ -41,6 +43,41 @@ const FeedbackList = () => {
     );
   };
 
+  const downloadExcel = () => {
+  const dataToExport = (data?.feedbacks || []).map((row) => ({
+    Student: row.studentName,
+    RollNo: row.studentRollNo,
+
+    School: row.school?.schoolName || "N/A",
+    Department: row.department?.departmentName || "N/A",
+
+    Semester: row.semester,
+    Section: row.classSection,
+
+    Faculty: row.faculty?.facultyName || "N/A",
+    Course: row.course?.courseName || "N/A",
+
+    Q1: row.q1,
+    Q2: row.q2,
+    Q3: row.q3,
+    Q4: row.q4,
+    Q5: row.q5,
+
+    AvgRating: (
+      (row.q1 + row.q2 + row.q3 + row.q4 + row.q5) / 5
+    ).toFixed(1),
+
+    Remarks: row.remarks,
+
+    Date: new Date(row.createdAt).toLocaleString(),
+  }));
+
+  const worksheet = XLSX.utils.json_to_sheet(dataToExport);
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, worksheet, "Feedback");
+  XLSX.writeFile(workbook, "Feedback.xlsx");
+};
+
   return (
     <div className="p-4">
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
@@ -52,6 +89,14 @@ const FeedbackList = () => {
             <span className="text-sm text-gray-500">
               Total: {feedbacks.length}
             </span>
+
+            <Button 
+                          label="Export to Excel" 
+                          icon="pi pi-download" 
+                          className="p-button-outlined p-button-secondary rounded-2xl font-bold px-6 py-3 border-2" 
+                          onClick={downloadExcel} 
+                          disabled={!data?.feedbacks?.length} 
+                        />
           </div>
 
           <DataTable
