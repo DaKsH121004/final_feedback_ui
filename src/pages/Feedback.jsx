@@ -107,9 +107,6 @@ const FeedbackList = () => {
             className="p-datatable-sm"
           >
 
-            <Column field="studentName" header="Student" sortable />
-            <Column field="studentRollNo" header="Roll No" />
-
             <Column header="School" body={schoolTemplate} />
             <Column header="Department" body={deptTemplate} />
 
