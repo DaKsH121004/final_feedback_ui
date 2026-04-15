@@ -48,7 +48,7 @@ const Layout = ({ children }) => {
   const menuItems = [
     { label: 'Dashboard', icon: 'pi pi-home', path: '/' },
     { label: 'Analytics', icon: 'pi pi-chart-bar', path: '/analytics' },
-    { label: 'Feedbacks', icon: 'pi pi-chart-bar', path: '/feedbacks' },
+    { label: 'Feedbacks', icon: 'pi pi-comments', path: '/feedbacks' },
     
     { label: 'Schools', icon: 'pi pi-building', path: '/schools' },
     { label: 'Departments', icon: 'pi pi-briefcase', path: '/departments' },

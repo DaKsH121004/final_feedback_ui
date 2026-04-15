@@ -26,7 +26,7 @@ const DashboardPage = () => {
     },
     {
       title: "Avg. Rating",
-      value: dashboardData?.averageRating || 0,
+      value: (dashboardData?.averageRating || 0).toFixed(2),
       icon: "pi-star",
       color: "emerald",
     },
