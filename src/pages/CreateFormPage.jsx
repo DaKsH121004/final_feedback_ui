@@ -39,9 +39,9 @@ const CreateFormPage = () => {
 
   const [formData, setFormData] = useState({
     submittedAt: new Date(),
-    studentName: "",
-    studentRollNumber: "",
-    studentEmail: "",
+    // studentName: "",
+    // studentRollNumber: "",
+    // studentEmail: "",
     schoolId: null,
     departmentId: null,
     semester: "",
@@ -76,9 +76,9 @@ const CreateFormPage = () => {
 
     // ✅ Basic validation
     if (
-      !formData.studentName ||
-      !formData.studentRollNumber ||
-      !formData.studentEmail ||
+      // !formData.studentName ||
+      // !formData.studentRollNumber ||
+      // !formData.studentEmail ||
       !formData.schoolId ||
       !formData.departmentId ||
       !formData.facultyId ||
@@ -90,9 +90,9 @@ const CreateFormPage = () => {
 
     try {
       const payload = {
-        studentName: formData.studentName,
-        studentRollNo: formData.studentRollNumber, // ✅ important key
-        studentEmail: formData.studentEmail,
+        // studentName: formData.studentName,
+        // studentRollNo: formData.studentRollNumber, // ✅ important key
+        // studentEmail: formData.studentEmail,
         schoolId: formData.schoolId,
         departmentId: formData.departmentId,
         semester: Number(formData.semester),
@@ -116,9 +116,9 @@ const CreateFormPage = () => {
       // reset form
       setFormData({
         submittedAt: new Date(),
-        studentName: "",
-        studentRollNumber: "",
-        studentEmail: "",
+        // studentName: "",
+        // studentRollNumber: "",
+        // studentEmail: "",
         schoolId: null,
         departmentId: null,
         semester: "",
@@ -184,7 +184,7 @@ if (isError || validation?.valid === false){
               )}
 
               {/* ---------------- STUDENT INFO ---------------- */}
-              <div>
+              {/* <div>
                 <h3 className="text-sm font-bold text-slate-500 uppercase mb-4">
                   Student Information
                 </h3>
@@ -215,7 +215,7 @@ if (isError || validation?.valid === false){
                     className="p-3 md:col-span-2"
                   />
                 </div>
-              </div>
+              </div> */}
 
               {/* ---------------- ACADEMIC DETAILS ---------------- */}
               <div>

@@ -128,7 +128,7 @@ const DashboardPage = () => {
                       </p>
 
                       <p className="text-xs text-slate-500">
-                        {item?.departments
+                        {item.departments
                           ?.map((d) => d?.departmentName)
                           .join(", ") || "No Department"}
                       </p>
