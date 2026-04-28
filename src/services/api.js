@@ -121,6 +121,23 @@ export const api = createApi({
         method: "GET",
       }),
     }),
+    // Assignments
+    getAssignments: builder.query({
+      query: () => ({ url: '/assignment', method: 'GET' }),
+      providesTags: ['Assignments'],
+    }),
+    addAssignment: builder.mutation({
+      query: (data) => ({ url: '/assignment', method: 'POST', data }),
+      invalidatesTags: ['Assignments'],
+    }),
+    updateAssignment: builder.mutation({
+      query: ({ id, ...data }) => ({ url: `/assignment/${id}`, method: 'PUT', data }),
+      invalidatesTags: ['Assignments'],
+    }),
+    deleteAssignment: builder.mutation({
+      query: (id) => ({ url: `/assignment/${id}`, method: 'DELETE' }),
+      invalidatesTags: ['Assignments'],
+    }),
   }),
   tagTypes: [
     "FormStatus",
@@ -129,6 +146,7 @@ export const api = createApi({
     "Faculty",
     "Courses",
     "Dashboard",
+    "Assignments"
   ],
 });
 
@@ -150,4 +168,8 @@ export const {
   useAddCourseMutation,
   useGetDashboardQuery,
   useValidateFormQuery,
+  useGetAssignmentsQuery,
+  useAddAssignmentMutation,
+  useUpdateAssignmentMutation,
+  useDeleteAssignmentMutation
 } = api;

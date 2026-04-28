@@ -20,3 +20,12 @@ export const RATING_QUESTIONS = [
     label: "Faculty encourages questions, discussions, and interaction to keep students actively involved in the learning process."
   }
 ];
+
+
+
+export const semester = [1,2,3,4,5,6,7,8,9,10];
+
+export const classSection = {
+  "Computer Science & Technology": ["CSE 4A", "CSE 4B", "CSE 4C"],
+  "Mechanical Enginnering": ["ME 4A", "ME 4B", "ME 4C"]
+};

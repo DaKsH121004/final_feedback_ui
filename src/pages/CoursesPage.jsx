@@ -27,7 +27,6 @@ const CoursesPage = () => {
     try {
       await addCourse({
         courseName,
-        facultiesId: selectedFaculty.map(f => f.id) // ✅ FIX
       }).unwrap();
 
       setCourseName('');
@@ -69,18 +68,6 @@ const CoursesPage = () => {
             )}
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <div className="flex flex-col gap-2.5">
-                <label className="text-xs font-black text-slate-500 uppercase tracking-widest ml-1">Select Faculty</label>
-                <MultiSelect
-                  value={selectedFaculty}
-                  options={faculty?.faculties}
-                  optionLabel="facultyName"
-                  onChange={(e) => setSelectedFaculty(e.value)}
-                  placeholder="Select Faculties"
-                  className="w-full"
-                  filter
-                />
-              </div>
               <div className="flex flex-col gap-2.5">
                 <label className="text-xs font-black text-slate-500 uppercase tracking-widest ml-1">Course Name</label>
                 <InputText
@@ -132,10 +119,7 @@ const CoursesPage = () => {
               <Column field="id" header="ID" />
               <Column field="courseName" header="Course Name" />
 
-              <Column
-                header="Faculties"
-                body={(row) => row.faculties.map(f => f.facultyName).join(", ")}
-              />
+              
             </DataTable>
           </div>
         </Card>

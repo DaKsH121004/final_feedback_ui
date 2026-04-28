@@ -13,6 +13,7 @@ import CoursesPage from './pages/CoursesPage';
 import ProtectedRoute from './components/ProtectedRoute';
 import Layout from './components/Layout';
 import FeedbackList from './pages/Feedback';
+import CourseAssignPage from './pages/CourseAssignPage';
 
 export default function App() {
   return (
@@ -32,6 +33,7 @@ export default function App() {
             <Route element={<Layout><DepartmentsPage /></Layout>} path="/departments" />
             <Route element={<Layout><FacultyPage /></Layout>} path="/faculty" />
             <Route element={<Layout><CoursesPage /></Layout>} path="/courses" />
+            <Route element={<Layout><CourseAssignPage /></Layout>} path="/assignment" />
           </Route>
           
           {/* Fallback */}

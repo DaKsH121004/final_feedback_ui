@@ -54,6 +54,7 @@ const Layout = ({ children }) => {
     { label: 'Departments', icon: 'pi pi-briefcase', path: '/departments' },
     { label: 'Faculty', icon: 'pi pi-users', path: '/faculty' },
     { label: 'Courses', icon: 'pi pi-book', path: '/courses' },
+    { label: 'Course Assign', icon: 'pi pi-link', path: '/assignment' },
   ];
 
   return (

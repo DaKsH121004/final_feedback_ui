@@ -55,12 +55,31 @@ const FacultyPage = () => {
   };
 
   const downloadExcel = () => {
-    const dataToExport = faculty || [];
-    const worksheet = XLSX.utils.json_to_sheet(dataToExport);
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Faculty");
-    XLSX.writeFile(workbook, "Faculty_List.xlsx");
-  };
+  const dataToExport = faculty?.faculties || [];
+
+  if (!Array.isArray(dataToExport)) {
+    console.error("Data is not an array:", dataToExport);
+    return;
+  }
+
+  const formattedData = dataToExport.map((item) => ({
+    Name: item.facultyName,
+    Code: item.facultyCode,
+    Email: item.facultyEmail,
+    Phone: item.facultyPhone,
+    Rating: item.averageRating,
+    Responses: item.totalResponses,
+    Departments:
+      item.departments?.map((d) => d.departmentName).join(", ") ||
+      "No Department",
+  }));
+
+  const worksheet = XLSX.utils.json_to_sheet(formattedData);
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, worksheet, "Faculty");
+
+  XLSX.writeFile(workbook, "Faculty_List.xlsx");
+};
 
   const departmentOptions =
     deptData?.departments?.map((dept) => ({
