@@ -10,6 +10,8 @@ import {
   useGetFacultyQuery,
   useAddFacultyMutation,
   useGetDepartmentsQuery,
+  useUpdateFacultyMutation,
+  useDeleteFacultyMutation,
 } from "../services/api";
 
 import * as XLSX from "xlsx";
@@ -21,10 +23,13 @@ const FacultyPage = () => {
   const [facultyEmail, setFacultyEmail] = useState("");
   const [facultyPhone, setFacultyPhone] = useState("");
   const [selectedDepartments, setSelectedDepartments] = useState([]);
-  const { data: faculty, isLoading } = useGetFacultyQuery();
+  const { data: faculty, isLoading, refetch } = useGetFacultyQuery();
   const { data: deptData } = useGetDepartmentsQuery();
   const [addFaculty] = useAddFacultyMutation();
+  const [updateFaculty] = useUpdateFacultyMutation();
+  const [deleteFaculty] = useDeleteFacultyMutation();
   const [submitted, setSubmitted] = useState(false);
+  const [editingId, setEditingId] = useState(null);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -32,15 +37,30 @@ const FacultyPage = () => {
     if (!facultyName || !facultyCode || !facultyEmail || !facultyPhone) return;
 
     try {
-      await addFaculty({
-        facultyName,
-        facultyCode,
-        facultyEmail,
-        facultyPhone,
-        departmentId: selectedDepartments,
-      }).unwrap();
+      if (editingId) {
+        await updateFaculty({
+          id: editingId,
+          facultyName,
+          facultyCode,
+          facultyEmail,
+          facultyPhone,
+          departmentId: selectedDepartments,
+        }).unwrap();
 
-      // reset form
+        setEditingId(null);
+      } else {
+        await addFaculty({
+          facultyName,
+          facultyCode,
+          facultyEmail,
+          facultyPhone,
+          departmentId: selectedDepartments,
+        }).unwrap();
+      }
+
+      // ✅ IMPORTANT FIX
+      refetch();
+
       setFacultyName("");
       setFacultyCode("");
       setFacultyEmail("");
@@ -49,43 +69,113 @@ const FacultyPage = () => {
 
       setSubmitted(true);
       setTimeout(() => setSubmitted(false), 3000);
+
     } catch (err) {
-      console.error("Failed to add faculty:", err);
+      console.error("Failed to submit faculty:", err);
     }
   };
 
   const downloadExcel = () => {
-  const dataToExport = faculty?.faculties || [];
+    const dataToExport = faculty?.faculties || [];
 
-  if (!Array.isArray(dataToExport)) {
-    console.error("Data is not an array:", dataToExport);
-    return;
-  }
+    if (!Array.isArray(dataToExport)) {
+      console.error("Data is not an array:", dataToExport);
+      return;
+    }
 
-  const formattedData = dataToExport.map((item) => ({
-    Name: item.facultyName,
-    Code: item.facultyCode,
-    Email: item.facultyEmail,
-    Phone: item.facultyPhone,
-    Rating: item.averageRating,
-    Responses: item.totalResponses,
-    Departments:
-      item.departments?.map((d) => d.departmentName).join(", ") ||
-      "No Department",
-  }));
+    const formattedData = dataToExport.map((item) => ({
+      Name: item.facultyName,
+      Code: item.facultyCode,
+      Email: item.facultyEmail,
+      Phone: item.facultyPhone,
+      Rating: item.averageRating,
+      Responses: item.totalResponses,
+      Departments:
+        item.departments?.map((d) => d.departmentName).join(", ") ||
+        "No Department",
+    }));
 
-  const worksheet = XLSX.utils.json_to_sheet(formattedData);
-  const workbook = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(workbook, worksheet, "Faculty");
+    const worksheet = XLSX.utils.json_to_sheet(formattedData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Faculty");
 
-  XLSX.writeFile(workbook, "Faculty_List.xlsx");
-};
+    XLSX.writeFile(workbook, "Faculty_List.xlsx");
+  };
 
   const departmentOptions =
     deptData?.departments?.map((dept) => ({
       label: dept.departmentName,
       value: dept.id,
     })) || [];
+
+
+  const resetForm = () => {
+    setFacultyName('');
+    setSelectedDepartments([]);
+    setFacultyCode("");
+    setFacultyEmail("");
+    setFacultyPhone("");
+    setEditingId(null);
+  };
+
+
+  const handleEdit = (facultyMember) => {
+    setEditingId(facultyMember.id);
+    setFacultyName(facultyMember.facultyName);
+    setFacultyCode(facultyMember.facultyCode);
+    setFacultyEmail(facultyMember.facultyEmail);
+    setFacultyPhone(facultyMember.facultyPhone);
+
+    // Map department names back to the objects from our departments list
+    // const filteredDepts = departments.filter(d =>
+    //   facultyMember.departmentNames?.includes(d.name)
+    // );
+    // setSelectedDepartments(filteredDepts);
+
+
+    const filteredDepts = departmentOptions
+      .filter(d =>
+        facultyMember.departments?.some(dep => dep.id === d.value)
+      )
+      .map(d => d.value);
+
+    setSelectedDepartments(filteredDepts);
+
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleDelete = async (id) => {
+    if (window.confirm('WARNING: Are you sure you want to delete this faculty member? This action cannot be undone.')) {
+      try {
+        await deleteFaculty(id).unwrap();
+
+        // ✅ IMPORTANT FIX
+        refetch();
+
+      } catch (err) {
+        console.error('Failed to delete faculty:', err);
+      }
+    }
+  };
+
+  const actionTemplate = (rowData) => {
+    return (
+      <div className="flex gap-2">
+        <Button
+          icon="pi pi-pencil"
+          className="p-button-rounded p-button-text p-button-warning"
+          onClick={() => handleEdit(rowData)}
+          tooltip="Edit"
+        />
+        <Button
+          icon="pi pi-trash"
+          className="p-button-rounded p-button-text p-button-danger"
+          onClick={() => handleDelete(rowData.id)}
+          tooltip="Delete"
+        />
+      </div>
+    );
+  };
 
   return (
     <div className="max-w-5xl mx-auto pb-12">
@@ -115,7 +205,7 @@ const FacultyPage = () => {
               >
                 <Message
                   severity="success"
-                  text="Faculty added successfully!"
+                  text={editingId ? "Faculty updated successfully!" : "Faculty added successfully!"}
                   className="w-full rounded-2xl border-none shadow-md"
                 />
               </motion.div>
@@ -193,11 +283,21 @@ const FacultyPage = () => {
               </div>
             </div>
 
-            <div className="flex justify-end pt-4">
+            <div className="flex justify-end gap-4 pt-4">
+              {editingId && (
+                <Button
+                  label="Cancel"
+                  icon="pi pi-times"
+                  className="p-button-text p-button-secondary rounded-2xl font-bold px-8"
+                  type="button"
+                  onClick={resetForm}
+                />
+              )}
               <Button
-                label="Add Faculty Member"
-                icon="pi pi-plus"
-                className="p-button-primary rounded-2xl font-black px-12 py-4 shadow-xl shadow-indigo-500/30 bg-gradient-to-r from-indigo-600 to-purple-700 border-none hover:scale-[1.02] transition-transform"
+                label={editingId ? "Update Faculty Member" : "Add Faculty Member"}
+                icon={editingId ? "pi pi-check" : "pi pi-plus"}
+                className={`p-button-primary rounded-2xl font-black px-12 py-4 shadow-xl border-none hover:scale-[1.02] transition-transform ${editingId ? 'bg-amber-500 shadow-amber-500/30' : 'bg-gradient-to-r from-indigo-600 to-purple-700 shadow-indigo-500/30'
+                  }`}
                 type="submit"
               />
             </div>
@@ -246,6 +346,7 @@ const FacultyPage = () => {
                   row.departments?.map((d) => d.departmentName).join(", ")
                 }
               />
+              <Column header="Actions" body={actionTemplate} style={{ width: '150px' }}></Column>
             </DataTable>
           </div>
         </Card>

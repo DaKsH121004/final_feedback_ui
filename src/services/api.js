@@ -103,6 +103,14 @@ export const api = createApi({
       query: (data) => ({ url: "/faculty/add", method: "POST", data }),
       invalidatesTags: ["Faculty"],
     }),
+    updateFaculty: builder.mutation({
+      query: ({ id, ...data }) => ({ url: `/faculty/update/${id}`, method: 'PUT', data }),
+      invalidatesTags: ['Faculty'],
+    }),
+    deleteFaculty: builder.mutation({
+      query: (id) => ({ url: `/faculty/delete/${id}`, method: 'DELETE' }),
+      invalidatesTags: ['Faculty'],
+    }),
     // Courses
     getCourses: builder.query({
       query: () => ({ url: "/course", method: "GET" }),
@@ -164,6 +172,8 @@ export const {
   useAddDepartmentMutation,
   useGetFacultyQuery,
   useAddFacultyMutation,
+  useUpdateFacultyMutation,
+  useDeleteFacultyMutation,
   useGetCoursesQuery,
   useAddCourseMutation,
   useGetDashboardQuery,
