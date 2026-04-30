@@ -238,7 +238,7 @@ const CoursesPage = () => {
                 <Message severity="success" text={editingId ? "Course profile updated successfully." : "New course successfully registered."} className="w-full rounded-2xl border-none shadow-lg py-4 bg-emerald-50 text-emerald-700 font-bold" />
               )}
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+              <div className="grid grid-cols-1 gap-10">
                 <div className="flex flex-col gap-3">
                   <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Course Identification Name</label>
                   <InputText
@@ -247,19 +247,6 @@ const CoursesPage = () => {
                     placeholder="e.g. Advanced Machine Learning"
                     className="w-full rounded-2xl border-slate-100 bg-slate-50/50 p-5 focus:ring-8 focus:ring-[#701515]/5 transition-all font-bold text-slate-700"
                     required
-                  />
-                </div>
-                
-                <div className="flex flex-col gap-3">
-                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Academic Department</label>
-                  <Dropdown
-                    value={selectedDepartment}
-                    options={departments}
-                    optionLabel="departmentName"
-                    onChange={(e) => setSelectedDepartment(e.value)}
-                    placeholder="Assign to Department"
-                    className="w-full rounded-2xl border-slate-100 bg-slate-50/50 min-h-[64px] flex items-center px-2"
-                    filter
                   />
                 </div>
               </div>
@@ -297,12 +284,6 @@ const CoursesPage = () => {
               >
                 <Column field="id" header="ID" className="font-bold text-slate-400" />
                 <Column field="courseName" header="Course Title" className="font-bold text-slate-800" sortable />
-                <Column 
-                  header="Department" 
-                  body={(row) => row.department?.departmentName || row.departmentName || 'Not Assigned'} 
-                  className="font-semibold text-slate-500" 
-                  sortable
-                />
                 <Column header="Actions" body={actionTemplate} />
               </DataTable>
             </div>
