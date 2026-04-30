@@ -20,17 +20,6 @@ const FeedbackList = () => {
     return <span className="font-bold text-indigo-600">{avg.toFixed(1)}</span>;
   };
 
-  // 🏫 School
-  const schoolTemplate = (row) => row.school?.schoolName || 'N/A';
-
-  // 🏢 Department
-  const deptTemplate = (row) => row.department?.departmentName || 'N/A';
-
-  // 👨‍🏫 Faculty
-  const facultyTemplate = (row) => row.faculty?.facultyName || 'N/A';
-
-  // 📘 Course
-  const courseTemplate = (row) => row.course?.courseName || 'N/A';
 
   // 📊 Rating Tag
   const ratingTag = (row) => {
@@ -121,12 +110,12 @@ const FeedbackList = () => {
               className="p-datatable-sm custom-modern-table"
               rowClassName={() => 'hover:bg-slate-50/50 transition-colors duration-200'}
             >
-              <Column header="School" body={schoolTemplate} className="font-semibold text-slate-600" />
-              <Column header="Department" body={deptTemplate} className="font-semibold text-slate-600" />
+              <Column field="school.schoolName" header="School" className="font-semibold text-slate-600" />
+              <Column field="department.departmentName" header="Department" className="font-semibold text-slate-600" />
               <Column field="semester" header="Sem" className="text-center font-bold text-slate-500" />
               <Column field="classSection" header="Section" className="text-center font-bold text-slate-500" />
-              <Column header="Faculty" body={facultyTemplate} className="font-bold text-slate-700" />
-              <Column header="Course" body={courseTemplate} className="font-bold text-[#701515]" />
+              <Column field="faculty.facultyName" header="Faculty" className="font-bold text-slate-700" />
+              <Column field="course.courseName" header="Course" className="font-bold text-[#701515]" />
               <Column header="Avg Rating" body={ratingTag} className="text-center" />
               <Column field="remarks" header="Remarks" className="italic text-slate-500 text-xs" />
               <Column 
