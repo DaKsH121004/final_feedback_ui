@@ -175,6 +175,8 @@ const FacultyPage = () => {
         />
       </div>
     );
+  };
+
   const [globalFilter, setGlobalFilter] = useState('');
 
   const renderHeader = () => {
