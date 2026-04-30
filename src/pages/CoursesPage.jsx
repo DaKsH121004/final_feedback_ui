@@ -129,87 +129,197 @@ const CoursesPage = () => {
   };
 
   return (
-    <div className="max-w-5xl mx-auto pb-12">
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-        <Card className="shadow-2xl rounded-[2rem] border-none overflow-hidden mb-10 bg-white">
-          <div className="bg-gradient-to-r from-emerald-600 to-teal-700 p-10 -mx-6 -mt-6 mb-10 relative overflow-hidden">
-            <div className="relative z-10">
-              <h1 className="text-4xl font-black text-white mb-3 tracking-tight">Manage Courses</h1>
-              <p className="text-emerald-100 font-medium opacity-90">Create new courses and link them to their respective faculty members.</p>
-            </div>
-            <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -mr-20 -mt-20 blur-3xl" />
-            <div className="absolute right-10 top-1/2 -translate-y-1/2 z-10">
-              <Button
-                type="button"
-                label="Bulk Upload (.xlsx)"
-                icon="pi pi-upload"
-                className="p-button-outlined text-white border-white hover:bg-white/20 whitespace-nowrap rounded-2xl font-bold px-6 py-3 border-2"
-                onClick={() => setShowBulkUpload(true)}
-              />
-            </div>
-          </div>
-
-          <form onSubmit={handleSubmit} className="flex flex-col gap-8 px-4">
-            {submitted && (
-              <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}>
-                <Message severity="success" text="Course added successfully!" className="w-full rounded-2xl border-none shadow-md" />
-              </motion.div>
-            )}
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <div className="flex flex-col gap-2.5">
-                <label className="text-xs font-black text-slate-500 uppercase tracking-widest ml-1">Course Name</label>
-                <InputText
-                  value={courseName}
-                  onChange={(e) => setCourseName(e.target.value)}
-                  placeholder="e.g. Advanced Mathematics"
-                  className="w-full rounded-2xl border-slate-200 p-4 focus:ring-4 focus:ring-emerald-500/10 transition-all"
-                  required
+    <div className="max-w-6xl mx-auto p-4 md:p-8">
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
+        {/* Main Card: Add Course */}
+        <Card className="shadow-2xl rounded-[2.5rem] border-none overflow-hidden mb-12 bg-white/80 backdrop-blur-sm">
+          <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-emerald-900 p-8 md:p-12 relative overflow-hidden">
+            {/* Background Decorations */}
+            <div className="absolute top-0 right-0 w-96 h-96 bg-emerald-500/10 rounded-full -mr-32 -mt-32 blur-[100px]" />
+            <div className="absolute bottom-0 left-0 w-64 h-64 bg-blue-500/10 rounded-full -ml-32 -mb-32 blur-[80px]" />
+            
+            <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+              <div className="max-w-2xl">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="bg-emerald-500/20 p-2 rounded-xl backdrop-blur-md">
+                    <i className="pi pi-book text-emerald-400 text-xl"></i>
+                  </div>
+                  <span className="text-emerald-400 font-bold uppercase tracking-widest text-xs">Curriculum Management</span>
+                </div>
+                <h1 className="text-4xl md:text-5xl font-black text-white mb-4 tracking-tighter">
+                  Manage Courses
+                </h1>
+                <p className="text-slate-300 text-lg font-medium opacity-90 leading-relaxed">
+                  Easily create, organize, and monitor your academic courses from one central dashboard.
+                </p>
+              </div>
+              
+              <div className="shrink-0">
+                <Button
+                  type="button"
+                  label="Bulk Upload (.xlsx)"
+                  icon="pi pi-upload"
+                  className="p-button-outlined text-white border-emerald-500/50 hover:bg-emerald-500/10 hover:border-emerald-400 transition-all duration-300 rounded-2xl font-bold px-8 py-4 border-2 shadow-lg shadow-emerald-900/20"
+                  onClick={() => setShowBulkUpload(true)}
                 />
               </div>
             </div>
+          </div>
 
-            <div className="flex justify-end pt-4">
+          <div className="p-8 md:p-12">
+            <form onSubmit={handleSubmit} className="flex flex-col gap-10">
+              {submitted && (
+                <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}>
+                  <Message severity="success" text="New course successfully integrated into the system." className="w-full rounded-2xl border-none shadow-lg py-4 px-6 bg-emerald-50 text-emerald-700" />
+                </motion.div>
+              )}
+
+              <div className="grid grid-cols-1 gap-8">
+                <div className="flex flex-col gap-3">
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Course Identification Name</label>
+                  <div className="relative group">
+                    <i className="pi pi-pencil absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-emerald-500 transition-colors"></i>
+                    <InputText
+                      value={courseName}
+                      onChange={(e) => setCourseName(e.target.value)}
+                      placeholder="e.g. Advanced Data Structures & Algorithms"
+                      className="w-full rounded-2xl border-slate-100 bg-slate-50/50 p-5 pl-14 focus:ring-8 focus:ring-emerald-500/5 focus:border-emerald-500/50 transition-all text-slate-700 font-semibold"
+                      required
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex justify-end pt-4">
+                <Button
+                  label="Add New Course"
+                  icon="pi pi-plus-circle"
+                  className="p-button-primary rounded-2xl font-black px-12 py-5 shadow-2xl shadow-emerald-900/40 bg-gradient-to-r from-emerald-600 to-teal-800 border-none hover:scale-[1.02] active:scale-95 transition-all duration-300"
+                  type="submit"
+                />
+              </div>
+            </form>
+          </div>
+        </Card>
+
+        {/* List Card: Existing Courses */}
+        <Card className="shadow-2xl rounded-[2.5rem] border-none overflow-hidden bg-white/80 backdrop-blur-sm">
+          <div className="p-8 md:p-12">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 mb-12">
+              <div>
+                <div className="flex items-center gap-2 mb-1">
+                  <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
+                  <h2 className="text-3xl font-black text-slate-900 tracking-tight">Active Curriculum</h2>
+                </div>
+                <p className="text-sm font-bold text-slate-400">Inventorying {courses?.courses?.length || 0} unique courses</p>
+              </div>
               <Button
-                label="Add New Course"
-                icon="pi pi-plus"
-                className="p-button-primary rounded-2xl font-black px-12 py-4 shadow-xl shadow-emerald-500/30 bg-gradient-to-r from-emerald-600 to-teal-700 border-none hover:scale-[1.02] transition-transform"
-                type="submit"
+                label="Export to Excel"
+                icon="pi pi-file-excel"
+                className="p-button-outlined p-button-secondary rounded-2xl font-bold px-8 py-4 border-2 border-slate-200 hover:border-slate-800 hover:bg-slate-800 hover:text-white transition-all duration-300"
+                onClick={downloadExcel}
+                disabled={!courses?.courses?.length}
               />
             </div>
-          </form>
+
+            <div className="rounded-2xl border border-slate-100 overflow-hidden shadow-inner">
+              <DataTable
+                value={courses?.courses}
+                loading={isLoading}
+                className="p-datatable-sm custom-modern-table"
+                paginator
+                rows={10}
+                emptyMessage="No academic records found."
+                responsiveLayout="stack"
+                rowClassName={() => 'hover:bg-slate-50/50 cursor-default transition-colors duration-200'}
+              >
+                <Column 
+                  field="id" 
+                  header="ID REF" 
+                  className="font-bold text-slate-400 px-6 py-4" 
+                  style={{ width: '120px' }}
+                />
+                <Column 
+                  field="courseName" 
+                  header="COURSE SPECIFICATION" 
+                  className="font-extrabold text-slate-700 px-6 py-4"
+                  body={(rowData) => (
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center text-slate-400">
+                        <i className="pi pi-book text-xs"></i>
+                      </div>
+                      {rowData.courseName}
+                    </div>
+                  )}
+                />
+              </DataTable>
+            </div>
+          </div>
         </Card>
 
         {/* BULK UPLOAD DIALOG */}
         <Dialog
-          header="Bulk Assign Courses"
+          header={
+            <div className="flex items-center gap-4 py-2">
+              <div className="bg-emerald-100 p-3 rounded-2xl">
+                <i className="pi pi-upload text-emerald-600 text-xl font-bold"></i>
+              </div>
+              <div className="flex flex-col">
+                <span className="text-2xl font-black text-slate-900 tracking-tight leading-none">Bulk Import</span>
+                <span className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">Accelerated Course Setup</span>
+              </div>
+            </div>
+          }
           visible={showBulkUpload}
-          style={{ width: '60vw' }}
-          breakpoints={{ '960px': '75vw', '641px': '90vw' }}
+          style={{ width: '90vw', maxWidth: '700px' }}
+          modal
           onHide={() => {
             setShowBulkUpload(false);
             setExcelData([]);
             setBulkError(null);
           }}
-          className="rounded-3xl"
+          className="rounded-[2.5rem] overflow-hidden"
+          maskClassName="backdrop-blur-md bg-slate-900/40"
         >
-          <div className="flex flex-col gap-6 pt-2">
+          <div className="flex flex-col gap-8 pt-4 pb-2">
             {bulkError && (
-              <Message severity="error" text={bulkError} className="w-full mb-2" />
+              <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
+                <Message severity="error" text={bulkError} className="w-full rounded-2xl border-none shadow-md" />
+              </motion.div>
             )}
+            
             {bulkSuccess && (
-              <Message 
-                severity={bulkSuccess.includes("Skipped") ? "warn" : "success"} 
-                content={(
-                  <div className="flex flex-col gap-1 py-1">
-                    <span className="font-bold">Bulk Upload Result:</span>
-                    <span className="text-sm">{bulkSuccess}</span>
-                  </div>
-                )} 
-                className="w-full mb-2" 
-              />
+              <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
+                <Message 
+                  severity={bulkSuccess.includes("Skipped") ? "warn" : "success"} 
+                  content={(
+                    <div className="flex flex-col gap-2 py-2 px-4">
+                      <span className="font-black text-sm uppercase tracking-wider">Operation Status:</span>
+                      <span className="text-base font-medium opacity-90">{bulkSuccess}</span>
+                    </div>
+                  )} 
+                  className="w-full rounded-2xl border-none shadow-md" 
+                />
+              </motion.div>
             )}
-            <div className="flex flex-wrap items-center gap-4">
+
+            <div 
+              className="group border-3 border-dashed border-slate-200 rounded-[2rem] p-12 flex flex-col items-center justify-center gap-6 bg-slate-50/50 hover:bg-emerald-50/30 hover:border-emerald-400 transition-all duration-500 cursor-pointer relative overflow-hidden"
+              onClick={() => document.getElementById('excel-upload').click()}
+            >
+              <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none">
+                <div className="absolute -top-24 -right-24 w-64 h-64 bg-emerald-200/20 rounded-full blur-3xl"></div>
+              </div>
+
+              <div className="w-20 h-20 bg-white rounded-3xl shadow-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-500">
+                <i className="pi pi-file-excel text-3xl text-emerald-600"></i>
+              </div>
+              
+              <div className="text-center relative z-10">
+                <p className="text-xl font-black text-slate-800 mb-2">Drop your Excel sheet here</p>
+                <p className="text-sm font-bold text-slate-400">or click to browse from system storage</p>
+              </div>
+
               <input
                 type="file"
                 accept=".xlsx, .xls"
@@ -217,38 +327,47 @@ const CoursesPage = () => {
                 className="hidden"
                 onChange={handleFileUpload}
               />
-              <Button
-                type="button"
-                label="Select Excel File"
-                icon="pi pi-file-excel"
-                className="p-button-outlined p-button-info"
-                onClick={() => document.getElementById('excel-upload').click()}
-              />
+            </div>
+
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-2">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-400">
+                  <i className="pi pi-info-circle"></i>
+                </div>
+                <span className="text-sm font-bold text-slate-500">
+                  Required formatting: <b className="text-slate-800 underline decoration-emerald-500 decoration-2">Course Name</b>
+                </span>
+              </div>
               <Button
                 type="button"
                 label="Download Template"
                 icon="pi pi-download"
-                className="p-button-text p-button-secondary"
+                className="p-button-text p-button-secondary font-black text-xs uppercase tracking-widest hover:text-emerald-600 transition-colors"
                 onClick={downloadTemplate}
               />
-              <span className="text-sm text-slate-500">
-                Required columns: <b>Course Name</b>
-              </span>
             </div>
 
             {excelData.length > 0 && (
-              <div className="border border-slate-200 rounded-xl overflow-hidden mt-4">
-                <DataTable value={excelData} paginator rows={5} responsiveLayout="scroll" className="p-datatable-sm">
-                  <Column field="courseName" header="Course Name" />
-                </DataTable>
-              </div>
+              <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} className="mt-4">
+                <div className="flex items-center justify-between mb-4 px-2">
+                  <span className="font-black text-slate-700 flex items-center gap-2">
+                    <i className="pi pi-eye text-emerald-500"></i>
+                    Data Preview ({excelData.length} records)
+                  </span>
+                </div>
+                <div className="border border-slate-100 rounded-2xl overflow-hidden shadow-2xl">
+                  <DataTable value={excelData} paginator rows={3} responsiveLayout="scroll" className="p-datatable-sm">
+                    <Column field="courseName" header="COURSE NAME" className="font-bold text-slate-600 p-4" />
+                  </DataTable>
+                </div>
+              </motion.div>
             )}
 
-            <div className="flex justify-end gap-3 mt-4">
+            <div className="flex justify-end items-center gap-4 mt-6 pt-4 border-t border-slate-50">
               <Button
                 type="button"
-                label="Cancel"
-                className="p-button-text p-button-secondary"
+                label="Abort"
+                className="p-button-text p-button-secondary font-bold px-8 py-4 rounded-2xl hover:bg-slate-100 transition-all"
                 onClick={() => {
                   setShowBulkUpload(false);
                   setExcelData([]);
@@ -256,9 +375,9 @@ const CoursesPage = () => {
               />
               <Button
                 type="button"
-                label="Process Upload"
-                icon="pi pi-check"
-                className="p-button-success"
+                label="Finalize Upload"
+                icon="pi pi-check-circle"
+                className="p-button-success shadow-2xl shadow-emerald-500/40 bg-gradient-to-r from-emerald-600 to-teal-800 border-none rounded-2xl font-black px-10 py-4 hover:scale-[1.02] active:scale-95 transition-all duration-300"
                 disabled={excelData.length === 0 || isUploading}
                 loading={isUploading}
                 onClick={handleBulkSubmit}
@@ -266,39 +385,6 @@ const CoursesPage = () => {
             </div>
           </div>
         </Dialog>
-
-        <Card className="shadow-2xl rounded-[2rem] border-none overflow-hidden bg-white">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8 px-4">
-            <div>
-              <h2 className="text-2xl font-black text-slate-900 tracking-tight">Existing Courses</h2>
-              <p className="text-sm font-bold text-slate-400">Total {courses?.length || 0} courses in curriculum</p>
-            </div>
-            <Button
-              label="Export to Excel"
-              icon="pi pi-download"
-              className="p-button-outlined p-button-secondary rounded-2xl font-bold px-6 py-3 border-2"
-              onClick={downloadExcel}
-              disabled={!courses?.courses?.length}
-            />
-          </div>
-
-          <div className="px-2">
-            <DataTable
-              value={courses?.courses}
-              loading={isLoading}
-              className="p-datatable-sm custom-table"
-              paginator
-              rows={10}
-              emptyMessage="No courses found."
-              responsiveLayout="stack"
-            >
-              <Column field="id" header="ID" />
-              <Column field="courseName" header="Course Name" />
-
-              
-            </DataTable>
-          </div>
-        </Card>
       </motion.div>
     </div>
   );
