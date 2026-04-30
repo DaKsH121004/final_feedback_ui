@@ -5,8 +5,9 @@ import { Button } from 'primereact/button';
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
 import { Dropdown } from 'primereact/dropdown';
+import { Dialog } from 'primereact/dialog';
 import { Message } from 'primereact/message';
-import { useGetCoursesQuery, useAddCourseMutation, useGetFacultyQuery } from '../services/api';
+import { useGetCoursesQuery, useAddCourseMutation, useGetFacultyQuery, useBulkUploadCoursesMutation } from '../services/api';
 import * as XLSX from 'xlsx';
 import { motion } from 'motion/react';
 import { MultiSelect } from 'primereact/multiselect';
@@ -18,6 +19,85 @@ const CoursesPage = () => {
   const { data: faculty } = useGetFacultyQuery();
   const [addCourse] = useAddCourseMutation();
   const [submitted, setSubmitted] = useState(false);
+
+  // Bulk Upload States
+  const [showBulkUpload, setShowBulkUpload] = useState(false);
+  const [excelData, setExcelData] = useState([]);
+  const [isUploading, setIsUploading] = useState(false);
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [bulkError, setBulkError] = useState(null);
+  const [bulkSuccess, setBulkSuccess] = useState(null);
+
+  const [bulkUploadCourses] = useBulkUploadCoursesMutation();
+
+  const handleFileUpload = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setSelectedFile(file);
+
+    const reader = new FileReader();
+    reader.onload = (evt) => {
+      const bstr = evt.target.result;
+      const wb = XLSX.read(bstr, { type: 'binary' });
+      const wsname = wb.SheetNames[0];
+      const ws = wb.Sheets[wsname];
+      const data = XLSX.utils.sheet_to_json(ws);
+      
+      console.log("Parsed Excel Data:", data);
+
+      const previewData = data.map((row, index) => {
+        // Find a key that looks like "Course Name"
+        const key = Object.keys(row).find(k => k.toLowerCase().trim() === 'course name') || 'Course Name';
+        return {
+          id: index,
+          courseName: row[key] || row['course name'] || row['Course Name'] || '',
+        };
+      }).filter(item => item.courseName); // Only show rows that have a course name
+
+      setExcelData(previewData);
+    };
+    reader.readAsBinaryString(file);
+    
+    e.target.value = null;
+  };
+
+  const downloadTemplate = () => {
+    const ws = XLSX.utils.json_to_sheet([{
+      "Course Name": "",
+    }]);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Template");
+    XLSX.writeFile(wb, "bulk_course_template.xlsx");
+  };
+
+  const handleBulkSubmit = async () => {
+    if (!selectedFile) return;
+
+    const formData = new FormData();
+    formData.append('file', selectedFile);
+
+    setIsUploading(true);
+    setBulkError(null);
+    setBulkSuccess(null);
+    try {
+      const response = await bulkUploadCourses(formData).unwrap();
+      setBulkSuccess(response.message || "Courses uploaded successfully!");
+      setExcelData([]);
+      setSelectedFile(null);
+      if (!response.message?.includes("Skipped")) {
+        setTimeout(() => {
+          setShowBulkUpload(false);
+          setBulkSuccess(null);
+        }, 5000);
+      }
+    } catch (error) {
+      console.error("Bulk upload failed:", error);
+      const errorMsg = error?.data?.message || "Bulk upload failed. Please check the file format.";
+      setBulkError(errorMsg);
+    } finally {
+      setIsUploading(false);
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -58,6 +138,15 @@ const CoursesPage = () => {
               <p className="text-emerald-100 font-medium opacity-90">Create new courses and link them to their respective faculty members.</p>
             </div>
             <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -mr-20 -mt-20 blur-3xl" />
+            <div className="absolute right-10 top-1/2 -translate-y-1/2 z-10">
+              <Button
+                type="button"
+                label="Bulk Upload (.xlsx)"
+                icon="pi pi-upload"
+                className="p-button-outlined text-white border-white hover:bg-white/20 whitespace-nowrap rounded-2xl font-bold px-6 py-3 border-2"
+                onClick={() => setShowBulkUpload(true)}
+              />
+            </div>
           </div>
 
           <form onSubmit={handleSubmit} className="flex flex-col gap-8 px-4">
@@ -90,6 +179,93 @@ const CoursesPage = () => {
             </div>
           </form>
         </Card>
+
+        {/* BULK UPLOAD DIALOG */}
+        <Dialog
+          header="Bulk Assign Courses"
+          visible={showBulkUpload}
+          style={{ width: '60vw' }}
+          breakpoints={{ '960px': '75vw', '641px': '90vw' }}
+          onHide={() => {
+            setShowBulkUpload(false);
+            setExcelData([]);
+            setBulkError(null);
+          }}
+          className="rounded-3xl"
+        >
+          <div className="flex flex-col gap-6 pt-2">
+            {bulkError && (
+              <Message severity="error" text={bulkError} className="w-full mb-2" />
+            )}
+            {bulkSuccess && (
+              <Message 
+                severity={bulkSuccess.includes("Skipped") ? "warn" : "success"} 
+                content={(
+                  <div className="flex flex-col gap-1 py-1">
+                    <span className="font-bold">Bulk Upload Result:</span>
+                    <span className="text-sm">{bulkSuccess}</span>
+                  </div>
+                )} 
+                className="w-full mb-2" 
+              />
+            )}
+            <div className="flex flex-wrap items-center gap-4">
+              <input
+                type="file"
+                accept=".xlsx, .xls"
+                id="excel-upload"
+                className="hidden"
+                onChange={handleFileUpload}
+              />
+              <Button
+                type="button"
+                label="Select Excel File"
+                icon="pi pi-file-excel"
+                className="p-button-outlined p-button-info"
+                onClick={() => document.getElementById('excel-upload').click()}
+              />
+              <Button
+                type="button"
+                label="Download Template"
+                icon="pi pi-download"
+                className="p-button-text p-button-secondary"
+                onClick={downloadTemplate}
+              />
+              <span className="text-sm text-slate-500">
+                Required columns: <b>Course Name</b>
+              </span>
+            </div>
+
+            {excelData.length > 0 && (
+              <div className="border border-slate-200 rounded-xl overflow-hidden mt-4">
+                <DataTable value={excelData} paginator rows={5} responsiveLayout="scroll" className="p-datatable-sm">
+                  <Column field="courseName" header="Course Name" />
+                </DataTable>
+              </div>
+            )}
+
+            <div className="flex justify-end gap-3 mt-4">
+              <Button
+                type="button"
+                label="Cancel"
+                className="p-button-text p-button-secondary"
+                onClick={() => {
+                  setShowBulkUpload(false);
+                  setExcelData([]);
+                }}
+              />
+              <Button
+                type="button"
+                label="Process Upload"
+                icon="pi pi-check"
+                className="p-button-success"
+                disabled={excelData.length === 0 || isUploading}
+                loading={isUploading}
+                onClick={handleBulkSubmit}
+              />
+            </div>
+          </div>
+        </Dialog>
 
         <Card className="shadow-2xl rounded-[2rem] border-none overflow-hidden bg-white">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8 px-4">

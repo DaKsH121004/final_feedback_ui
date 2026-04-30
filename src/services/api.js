@@ -120,6 +120,17 @@ export const api = createApi({
       query: (data) => ({ url: "/course/add", method: "POST", data }),
       invalidatesTags: ["Courses"],
     }),
+    bulkUploadCourses: builder.mutation({
+      query: (formData) => ({
+        url: '/course/bulk-upload',
+        method: 'POST',
+        data: formData,
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      }),
+      invalidatesTags: ['Courses'],
+    }),
     getDashboard: builder.query({
       query: () => ({ url: "/dashboard", method: "GET" }),
     }),
@@ -193,5 +204,6 @@ export const {
   useAddAssignmentMutation,
   useUpdateAssignmentMutation,
   useDeleteAssignmentMutation,
-  useBulkUploadAssignmentsMutation
+  useBulkUploadAssignmentsMutation,
+  useBulkUploadCoursesMutation
 } = api;
