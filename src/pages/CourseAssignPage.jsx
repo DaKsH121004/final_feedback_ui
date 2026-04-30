@@ -452,147 +452,260 @@ const CourseAssignPage = () => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto pb-10">
-      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-        {/* FORM */}
-        <Card className="shadow-2xl rounded-3xl mb-8">
-          <div className="bg-gradient-to-r from-orange-500 to-red-600 p-8 rounded-t-3xl text-white mb-8 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-            <div>
-              <h1 className="text-4xl font-bold">Course Assignment</h1>
-              <p className="mt-2 text-orange-100">
-                Assign Faculty with Department and Course
-              </p>
-            </div>
-            <Button
-              type="button"
-              label="Bulk Upload (.xlsx)"
-              icon="pi pi-upload"
-              className="p-button-outlined text-white border-white hover:bg-white/20 whitespace-nowrap"
-              onClick={() => setShowBulkUpload(true)}
-            />
-          </div>
-
-          <form onSubmit={handleSubmit} className="px-4 pb-6">
-            {submitted && (
-              <Message
-                severity="success"
-                text={`Assignment ${
-                  editingId ? 'updated' : 'created'
-                } successfully`}
-                className="mb-5"
-              />
-            )}
-
-            <div className="grid md:grid-cols-3 gap-5">
-              {/* Department */}
-              <div>
-                <label className="font-semibold block mb-2">
-                  Department
-                </label>
-
-                <Dropdown
-                  value={selectedDepartment}
-                  options={departments}
-                  optionLabel="departmentName"
-                  onChange={(e) => {
-                    setSelectedDepartment(e.value);
-                    setSelectedFaculty(null);
-                  }}
-                  placeholder="Select Department"
-                  className="w-full"
-                  filter
-                />
+    <div className="max-w-7xl mx-auto p-4 md:p-8">
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
+        {/* Main Card: Assignment Form */}
+        <Card className="shadow-2xl rounded-[2.5rem] border-none overflow-hidden mb-12 bg-white/80 backdrop-blur-sm">
+          <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-orange-900 p-8 md:p-12 relative overflow-hidden">
+            {/* Background Decorations */}
+            <div className="absolute top-0 right-0 w-96 h-96 bg-orange-500/10 rounded-full -mr-32 -mt-32 blur-[100px]" />
+            <div className="absolute bottom-0 left-0 w-64 h-64 bg-red-500/10 rounded-full -ml-32 -mb-32 blur-[80px]" />
+            
+            <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+              <div className="max-w-2xl">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="bg-orange-500/20 p-2 rounded-xl backdrop-blur-md">
+                    <i className="pi pi-users text-orange-400 text-xl"></i>
+                  </div>
+                  <span className="text-orange-400 font-bold uppercase tracking-widest text-xs">Faculty Resource Management</span>
+                </div>
+                <h1 className="text-4xl md:text-5xl font-black text-white mb-4 tracking-tighter">
+                  Course Assignment
+                </h1>
+                <p className="text-slate-300 text-lg font-medium opacity-90 leading-relaxed">
+                  Strategically link faculty expertise with departments and specific courses to optimize academic delivery.
+                </p>
               </div>
-
-              {/* Faculty */}
-              <div>
-                <label className="font-semibold block mb-2">
-                  Faculty
-                </label>
-
-                <Dropdown
-                  value={selectedFaculty}
-                  options={filteredFaculty}
-                  optionLabel="facultyName"
-                  onChange={(e) => setSelectedFaculty(e.value)}
-                  placeholder="Select Faculty"
-                  className="w-full"
-                  filter
-                />
-              </div>
-
-              {/* Course */}
-              <div>
-                <label className="font-semibold block mb-2">
-                  Course
-                </label>
-
-                <Dropdown
-                  value={selectedCourse}
-                  options={courses}
-                  optionLabel="courseName"
-                  onChange={(e) => setSelectedCourse(e.value)}
-                  placeholder="Select Course"
-                  className="w-full"
-                  filter
-                />
-              </div>
-            </div>
-
-            <div className="flex justify-end gap-3 mt-8">
-              {editingId && (
+              
+              <div className="shrink-0">
                 <Button
                   type="button"
-                  label="Cancel"
-                  className="p-button-secondary"
-                  onClick={resetForm}
+                  label="Bulk Upload (.xlsx)"
+                  icon="pi pi-upload"
+                  className="p-button-outlined text-white border-orange-500/50 hover:bg-orange-500/10 hover:border-orange-400 transition-all duration-300 rounded-2xl font-bold px-8 py-4 border-2 shadow-lg shadow-orange-900/20"
+                  onClick={() => setShowBulkUpload(true)}
                 />
+              </div>
+            </div>
+          </div>
+
+          <div className="p-8 md:p-12">
+            <form onSubmit={handleSubmit} className="flex flex-col gap-10">
+              {submitted && (
+                <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}>
+                  <Message severity="success" text={`Academic link ${editingId ? 'updated' : 'established'} successfully.`} className="w-full rounded-2xl border-none shadow-lg py-4 px-6 bg-orange-50 text-orange-700" />
+                </motion.div>
               )}
 
-              <Button
-                type="submit"
-                label={
-                  editingId
-                    ? 'Update Assignment'
-                    : 'Create Assignment'
-                }
-                icon="pi pi-check"
-                className="p-button-success"
-              />
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                {/* Department Selection */}
+                <div className="flex flex-col gap-3">
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 text-center sm:text-left">Department Focus</label>
+                  <div className="relative group">
+                    <Dropdown
+                      value={selectedDepartment}
+                      options={departments}
+                      optionLabel="departmentName"
+                      onChange={(e) => {
+                        setSelectedDepartment(e.value);
+                        setSelectedFaculty(null);
+                      }}
+                      placeholder="Select Department"
+                      className="w-full rounded-2xl border-slate-100 bg-slate-50/50 p-2 focus:ring-8 focus:ring-orange-500/5 focus:border-orange-500/50 transition-all text-slate-700 font-semibold"
+                      filter
+                    />
+                  </div>
+                </div>
+
+                {/* Faculty Selection */}
+                <div className="flex flex-col gap-3">
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 text-center sm:text-left">Faculty Member</label>
+                  <div className="relative group">
+                    <Dropdown
+                      value={selectedFaculty}
+                      options={filteredFaculty}
+                      optionLabel="facultyName"
+                      onChange={(e) => setSelectedFaculty(e.value)}
+                      placeholder="Select Faculty"
+                      className="w-full rounded-2xl border-slate-100 bg-slate-50/50 p-2 focus:ring-8 focus:ring-orange-500/5 focus:border-orange-500/50 transition-all text-slate-700 font-semibold"
+                      filter
+                      disabled={!selectedDepartment}
+                    />
+                  </div>
+                </div>
+
+                {/* Course Selection */}
+                <div className="flex flex-col gap-3">
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 text-center sm:text-left">Assigned Course</label>
+                  <div className="relative group">
+                    <Dropdown
+                      value={selectedCourse}
+                      options={courses}
+                      optionLabel="courseName"
+                      onChange={(e) => setSelectedCourse(e.value)}
+                      placeholder="Select Course"
+                      className="w-full rounded-2xl border-slate-100 bg-slate-50/50 p-2 focus:ring-8 focus:ring-orange-500/5 focus:border-orange-500/50 transition-all text-slate-700 font-semibold"
+                      filter
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex justify-end items-center gap-4 pt-4">
+                {editingId && (
+                  <Button
+                    type="button"
+                    label="Cancel Refinement"
+                    className="p-button-text p-button-secondary font-bold px-8 py-5 rounded-2xl hover:bg-slate-100 transition-all"
+                    onClick={resetForm}
+                  />
+                )}
+                <Button
+                  label={editingId ? "Update Assignment" : "Finalize Assignment"}
+                  icon={editingId ? "pi pi-sync" : "pi pi-check-circle"}
+                  className={`rounded-2xl font-black px-12 py-5 shadow-2xl transition-all duration-300 hover:scale-[1.02] active:scale-95 border-none ${
+                    editingId 
+                      ? 'bg-amber-500 shadow-amber-900/20' 
+                      : 'bg-gradient-to-r from-orange-600 to-red-800 shadow-orange-900/40'
+                  }`}
+                  type="submit"
+                />
+              </div>
+            </form>
+          </div>
+        </Card>
+
+        {/* List Card: Active Assignments */}
+        <Card className="shadow-2xl rounded-[2.5rem] border-none overflow-hidden bg-white/80 backdrop-blur-sm">
+          <div className="p-8 md:p-12">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 mb-12">
+              <div>
+                <div className="flex items-center gap-2 mb-1">
+                  <div className="w-2 h-2 rounded-full bg-orange-500 animate-pulse"></div>
+                  <h2 className="text-3xl font-black text-slate-900 tracking-tight">Assignment Registry</h2>
+                </div>
+                <p className="text-sm font-bold text-slate-400">Monitoring {assignments?.length || 0} active teaching links</p>
+              </div>
             </div>
-          </form>
+
+            <div className="rounded-2xl border border-slate-100 overflow-hidden shadow-inner">
+              <DataTable
+                value={assignments}
+                loading={assignmentsLoading}
+                className="p-datatable-sm custom-modern-table"
+                paginator
+                rows={10}
+                emptyMessage="No active assignment records found."
+                responsiveLayout="stack"
+                rowClassName={() => 'hover:bg-slate-50/50 cursor-default transition-colors duration-200'}
+              >
+                <Column 
+                  field="id" 
+                  header="ID REF" 
+                  className="font-bold text-slate-400 px-6 py-4" 
+                  style={{ width: '100px' }}
+                />
+                <Column 
+                  field="facultyName" 
+                  header="FACULTY EXPERT" 
+                  className="font-extrabold text-slate-700 px-6 py-4"
+                  body={(rowData) => (
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center text-orange-600">
+                        <i className="pi pi-user text-xs"></i>
+                      </div>
+                      {rowData.facultyName}
+                    </div>
+                  )}
+                />
+                <Column 
+                  field="departmentName" 
+                  header="DEPARTMENT" 
+                  className="font-bold text-slate-500 px-6 py-4"
+                />
+                <Column 
+                  field="courseName" 
+                  header="COURSE" 
+                  className="font-black text-orange-600 px-6 py-4"
+                  body={(rowData) => (
+                    <div className="bg-orange-50 inline-block px-3 py-1 rounded-lg border border-orange-100">
+                      {rowData.courseName}
+                    </div>
+                  )}
+                />
+                <Column 
+                  header="OPERATIONS" 
+                  className="px-6 py-4"
+                  body={actionTemplate}
+                />
+              </DataTable>
+            </div>
+          </div>
         </Card>
 
         {/* BULK UPLOAD DIALOG */}
         <Dialog
-          header="Bulk Assign Courses"
+          header={
+            <div className="flex items-center gap-4 py-2">
+              <div className="bg-orange-100 p-3 rounded-2xl">
+                <i className="pi pi-upload text-orange-600 text-xl font-bold"></i>
+              </div>
+              <div className="flex flex-col">
+                <span className="text-2xl font-black text-slate-900 tracking-tight leading-none">Bulk Assignment</span>
+                <span className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">Accelerated Resource Allocation</span>
+              </div>
+            </div>
+          }
           visible={showBulkUpload}
-          style={{ width: '60vw' }}
-          breakpoints={{ '960px': '75vw', '641px': '90vw' }}
+          style={{ width: '90vw', maxWidth: '800px' }}
+          modal
           onHide={() => {
             setShowBulkUpload(false);
             setExcelData([]);
             setBulkError(null);
           }}
-          className="rounded-3xl"
+          className="rounded-[2.5rem] overflow-hidden"
+          maskClassName="backdrop-blur-md bg-slate-900/40"
         >
-          <div className="flex flex-col gap-6 pt-2">
+          <div className="flex flex-col gap-8 pt-4 pb-2">
             {bulkError && (
-              <Message severity="error" text={bulkError} className="w-full mb-2" />
+              <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
+                <Message severity="error" text={bulkError} className="w-full rounded-2xl border-none shadow-md" />
+              </motion.div>
             )}
+            
             {bulkSuccess && (
-              <Message 
-                severity={bulkSuccess.includes("Skipped") ? "warn" : "success"} 
-                content={(
-                  <div className="flex flex-col gap-1 py-1">
-                    <span className="font-bold">Bulk Upload Result:</span>
-                    <span className="text-sm">{bulkSuccess}</span>
-                  </div>
-                )} 
-                className="w-full mb-2" 
-              />
+              <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
+                <Message 
+                  severity={bulkSuccess.includes("Skipped") ? "warn" : "success"} 
+                  content={(
+                    <div className="flex flex-col gap-2 py-2 px-4">
+                      <span className="font-black text-sm uppercase tracking-wider">Operation Status:</span>
+                      <span className="text-base font-medium opacity-90">{bulkSuccess}</span>
+                    </div>
+                  )} 
+                  className="w-full rounded-2xl border-none shadow-md" 
+                />
+              </motion.div>
             )}
-            <div className="flex flex-wrap items-center gap-4">
+
+            <div 
+              className="group border-3 border-dashed border-slate-200 rounded-[2rem] p-12 flex flex-col items-center justify-center gap-6 bg-slate-50/50 hover:bg-orange-50/30 hover:border-orange-400 transition-all duration-500 cursor-pointer relative overflow-hidden"
+              onClick={() => document.getElementById('excel-upload').click()}
+            >
+              <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none">
+                <div className="absolute -top-24 -right-24 w-64 h-64 bg-orange-200/20 rounded-full blur-3xl"></div>
+              </div>
+
+              <div className="w-20 h-20 bg-white rounded-3xl shadow-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-500">
+                <i className="pi pi-file-excel text-3xl text-orange-600"></i>
+              </div>
+              
+              <div className="text-center relative z-10">
+                <p className="text-xl font-black text-slate-800 mb-2">Drop Assignment Matrix here</p>
+                <p className="text-sm font-bold text-slate-400">or click to upload your course-faculty mapping</p>
+              </div>
+
               <input
                 type="file"
                 accept=".xlsx, .xls"
@@ -600,40 +713,49 @@ const CourseAssignPage = () => {
                 className="hidden"
                 onChange={handleFileUpload}
               />
-              <Button
-                type="button"
-                label="Select Excel File"
-                icon="pi pi-file-excel"
-                className="p-button-outlined p-button-info"
-                onClick={() => document.getElementById('excel-upload').click()}
-              />
+            </div>
+
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-2">
+              <div className="flex items-center gap-3 text-slate-500 text-sm">
+                <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center">
+                  <i className="pi pi-info-circle"></i>
+                </div>
+                <span>
+                  Mandatory headers: <b className="text-slate-800">Course Name</b>, <b className="text-slate-800">Faculty Name</b>, <b className="text-slate-800">Department</b>
+                </span>
+              </div>
               <Button
                 type="button"
                 label="Download Template"
                 icon="pi pi-download"
-                className="p-button-text p-button-secondary"
+                className="p-button-text p-button-secondary font-black text-xs uppercase tracking-widest hover:text-orange-600 transition-colors"
                 onClick={downloadTemplate}
               />
-              <span className="text-sm text-slate-500">
-                Required columns: <b>Course Name</b>, <b>Faculty Name</b>, <b>Department</b>
-              </span>
             </div>
 
             {excelData.length > 0 && (
-              <div className="border border-slate-200 rounded-xl overflow-hidden mt-4">
-                <DataTable value={excelData} paginator rows={5} responsiveLayout="scroll" className="p-datatable-sm">
-                  <Column field="courseName" header="Course Name" />
-                  <Column field="faculty" header="Faculty Name" />
-                  <Column field="department" header="Department" />
-                </DataTable>
-              </div>
+              <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} className="mt-4">
+                <div className="flex items-center justify-between mb-4 px-2">
+                  <span className="font-black text-slate-700 flex items-center gap-2">
+                    <i className="pi pi-eye text-orange-500"></i>
+                    Data Preview ({excelData.length} mappings)
+                  </span>
+                </div>
+                <div className="border border-slate-100 rounded-2xl overflow-hidden shadow-2xl">
+                  <DataTable value={excelData} paginator rows={3} responsiveLayout="scroll" className="p-datatable-sm">
+                    <Column field="courseName" header="COURSE" className="font-bold text-slate-600 p-4" />
+                    <Column field="faculty" header="FACULTY" className="font-bold text-slate-600 p-4" />
+                    <Column field="department" header="DEPT" className="font-bold text-slate-600 p-4" />
+                  </DataTable>
+                </div>
+              </motion.div>
             )}
 
-            <div className="flex justify-end gap-3 mt-4">
+            <div className="flex justify-end items-center gap-4 mt-6 pt-4 border-t border-slate-50">
               <Button
                 type="button"
-                label="Cancel"
-                className="p-button-text p-button-secondary"
+                label="Abort"
+                className="p-button-text p-button-secondary font-bold px-8 py-4 rounded-2xl hover:bg-slate-100 transition-all"
                 onClick={() => {
                   setShowBulkUpload(false);
                   setExcelData([]);
@@ -641,9 +763,9 @@ const CourseAssignPage = () => {
               />
               <Button
                 type="button"
-                label="Process Upload"
-                icon="pi pi-check"
-                className="p-button-success"
+                label="Commit Assignments"
+                icon="pi pi-check-circle"
+                className="p-button-success shadow-2xl shadow-orange-500/40 bg-gradient-to-r from-orange-600 to-red-800 border-none rounded-2xl font-black px-10 py-4 hover:scale-[1.02] active:scale-95 transition-all duration-300"
                 disabled={excelData.length === 0 || isUploading}
                 loading={isUploading}
                 onClick={handleBulkSubmit}
@@ -651,37 +773,6 @@ const CourseAssignPage = () => {
             </div>
           </div>
         </Dialog>
-
-        {/* TABLE */}
-        <Card className="shadow-2xl rounded-3xl">
-          <div className="mb-5">
-            <h2 className="text-2xl font-bold">
-              Active Assignments
-            </h2>
-          </div>
-
-          <DataTable
-            value={assignments}
-            paginator
-            rows={10}
-            loading={assignmentsLoading}
-            responsiveLayout="scroll"
-            emptyMessage="No assignments found"
-          >
-            <Column field="id" header="ID" sortable />
-            <Column field="facultyName" header="Faculty" sortable />
-            <Column
-              field="departmentName"
-              header="Department"
-              sortable
-            />
-            <Column field="courseName" header="Course" sortable />
-            <Column
-              header="Action"
-              body={actionTemplate}
-            />
-          </DataTable>
-        </Card>
       </motion.div>
     </div>
   );
