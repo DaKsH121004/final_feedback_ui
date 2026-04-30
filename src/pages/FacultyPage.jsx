@@ -194,12 +194,13 @@ const FacultyPage = () => {
         
         <div className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto">
           <div className="relative w-full sm:w-80 group">
-            <i className="pi pi-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-[#701515] transition-colors"></i>
+            <i className="pi pi-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-[#701515] transition-colors z-10"></i>
             <InputText
               value={globalFilter}
               onChange={(e) => setGlobalFilter(e.target.value)}
               placeholder="Search by Name, Code, or Email..."
-              className="w-full pl-12 pr-4 py-4 rounded-2xl border-slate-100 bg-slate-50/50 focus:ring-8 focus:ring-[#701515]/5 transition-all font-bold text-slate-700"
+              className="w-full pr-4 py-3 rounded-2xl border-2 border-slate-200 bg-slate-50 focus:border-[#701515] focus:ring-4 focus:ring-[#701515]/10 transition-all font-bold text-slate-700"
+              style={{ paddingLeft: '3rem' }}
             />
           </div>
           <Button
