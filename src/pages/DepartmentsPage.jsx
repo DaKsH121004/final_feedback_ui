@@ -45,90 +45,142 @@ const DepartmentsPage = () => {
   };
 
   return (
-    <div className="max-w-5xl mx-auto pb-12">
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-        <Card className="shadow-2xl rounded-[2rem] border-none overflow-hidden mb-10 bg-white">
-          <div className="bg-gradient-to-r from-indigo-600 to-purple-700 p-10 -mx-6 -mt-6 mb-10 relative overflow-hidden">
-            <div className="relative z-10">
-              <h1 className="text-4xl font-black text-white mb-3 tracking-tight">Manage Departments</h1>
-              <p className="text-indigo-100 font-medium opacity-90">Organize your academic structure by linking departments to their respective schools.</p>
-            </div>
-            <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -mr-20 -mt-20 blur-3xl" />
+    <div className="max-w-6xl mx-auto p-4 md:p-8 space-y-12">
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
+        {/* Registration Card */}
+        <Card className="shadow-2xl rounded-[2.5rem] border-none overflow-hidden mb-12 bg-white/80 backdrop-blur-sm relative">
+          <div className="absolute top-0 right-0 p-12 opacity-5 pointer-events-none">
+            <i className="pi pi-briefcase text-9xl text-white" />
           </div>
 
-          <form onSubmit={handleSubmit} className="flex flex-col gap-8 px-4">
-            {submitted && (
-              <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}>
-                <Message severity="success" text="Department added successfully!" className="w-full rounded-2xl border-none shadow-md" />
-              </motion.div>
-            )}
+          <div className="bg-gradient-to-br from-[#701515] via-[#4a0d0d] to-black p-10 md:p-14 relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-96 h-96 bg-amber-500/10 rounded-full -mr-32 -mt-32 blur-[100px]" />
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <div className="flex flex-col gap-2.5">
-                <label className="text-xs font-black text-slate-500 uppercase tracking-widest ml-1">Select School</label>
-                <Dropdown 
-                  value={selectedSchool} 
-                  options={schools?.schools} 
-                  optionLabel="schoolName"
-                  onChange={(e) => setSelectedSchool(e.value)} 
-                  placeholder="Which school's department?" 
-                  className="w-full rounded-2xl border-slate-200"
-                  required
-                  filter
+            <div className="relative z-10">
+              <div className="flex items-center gap-3 mb-4">
+                <span className="bg-amber-500/20 text-amber-400 text-[10px] font-black px-3 py-1 rounded-lg uppercase tracking-[0.2em] border border-amber-500/20 backdrop-blur-md">Organizational Structure</span>
+              </div>
+              <h1 className="text-4xl md:text-5xl font-serif font-black text-white mb-4 tracking-tighter">
+                Manage Departments
+              </h1>
+              <p className="text-red-100/70 text-lg font-medium max-w-2xl leading-relaxed">
+                Define and organize academic departments within their respective institutional schools.
+              </p>
+            </div>
+          </div>
+
+          <div className="p-8 md:p-12">
+            <form onSubmit={handleSubmit} className="space-y-10">
+              {submitted && (
+                <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}>
+                  <Message severity="success" text="Department successfully integrated into the university structure." className="w-full rounded-2xl border-none shadow-lg py-4 bg-emerald-50 text-emerald-700 font-bold" />
+                </motion.div>
+              )}
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+                <div className="flex flex-col gap-3">
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Parent Institution (School)</label>
+                  <Dropdown 
+                    value={selectedSchool} 
+                    options={schools?.schools} 
+                    optionLabel="schoolName"
+                    onChange={(e) => setSelectedSchool(e.value)} 
+                    placeholder="Select School" 
+                    className="w-full rounded-2xl border-slate-100 bg-slate-50/50 min-h-[64px] flex items-center px-2"
+                    required
+                    filter
+                  />
+                </div>
+                <div className="flex flex-col gap-3">
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Department Nomenclature</label>
+                  <InputText 
+                    value={departmentName} 
+                    onChange={(e) => setDepartmentName(e.target.value)} 
+                    placeholder="e.g. Department of Mechanical Engineering" 
+                    className="w-full rounded-2xl border-slate-100 bg-slate-50/50 p-5 focus:ring-8 focus:ring-[#701515]/5 transition-all font-bold text-slate-700"
+                    required
+                  />
+                </div>
+              </div>
+              
+              <div className="flex justify-end pt-6 border-t border-slate-100">
+                <Button 
+                  label="Establish Department" 
+                  icon="pi pi-plus-circle" 
+                  className="rounded-2xl font-black text-[10px] uppercase tracking-widest px-12 h-14 shadow-2xl shadow-red-900/20 border-none transition-all duration-300 hover:scale-105 active:scale-95" 
+                  style={{ background: 'linear-gradient(135deg, #701515 0%, #4a0d0d 100%)', color: '#fff' }}
+                  type="submit" 
                 />
               </div>
-              <div className="flex flex-col gap-2.5">
-                <label className="text-xs font-black text-slate-500 uppercase tracking-widest ml-1">Department Name</label>
-                <InputText 
-                  value={departmentName} 
-                  onChange={(e) => setDepartmentName(e.target.value)} 
-                  placeholder="Enter department name" 
-                  className="w-full rounded-2xl border-slate-200 p-4 focus:ring-4 focus:ring-indigo-500/10 transition-all"
-                  required
-                />
-              </div>
-            </div>
-            
-            <div className="flex justify-end pt-4">
-              <Button 
-                label="Add Department" 
-                icon="pi pi-plus" 
-                className="p-button-primary rounded-2xl font-black px-12 py-4 shadow-xl shadow-indigo-500/30 bg-gradient-to-r from-indigo-600 to-purple-700 border-none hover:scale-[1.02] transition-transform" 
-                type="submit" 
-              />
-            </div>
-          </form>
+            </form>
+          </div>
         </Card>
 
-        <Card className="shadow-2xl rounded-[2rem] border-none overflow-hidden bg-white">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8 px-4">
-            <div>
-              <h2 className="text-2xl font-black text-slate-900 tracking-tight">Existing Departments</h2>
-              <p className="text-sm font-bold text-slate-400">Total {departments?.length || 0} departments registered</p>
+        {/* List Card */}
+        <Card className="shadow-2xl rounded-[2.5rem] border-none overflow-hidden bg-white/80 backdrop-blur-sm">
+          <div className="p-8 md:p-12">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 mb-12">
+              <div>
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="w-1.5 h-6 bg-[#701515] rounded-full"></div>
+                  <h2 className="text-3xl font-serif font-black text-slate-900 tracking-tight">Divisional Index</h2>
+                </div>
+                <p className="text-sm font-bold text-slate-400 uppercase tracking-widest ml-4">{departments?.departments?.length || 0} Departments Registered</p>
+              </div>
+              <Button 
+                label="Export Registry (.xlsx)" 
+                icon="pi pi-download" 
+                className="p-button-text p-button-secondary font-black text-[10px] uppercase tracking-widest border-2 border-slate-100 rounded-2xl px-8 h-12 hover:bg-slate-50 transition-all" 
+                onClick={downloadExcel} 
+                disabled={!departments?.departments?.length} 
+              />
             </div>
-            <Button 
-              label="Export to Excel" 
-              icon="pi pi-download" 
-              className="p-button-outlined p-button-secondary rounded-2xl font-bold px-6 py-3 border-2" 
-              onClick={downloadExcel} 
-              disabled={!departments?.departments?.length} 
-            />
-          </div>
 
-          <div className="px-2">
-            <DataTable 
-              value={departments?.departments} 
-              loading={isLoading} 
-              className="p-datatable-sm custom-table" 
-              paginator 
-              rows={10} 
-              emptyMessage="No departments found."
-              responsiveLayout="stack"
-            >
-              <Column field="id" header="ID" sortable className="font-mono text-xs text-slate-400"></Column>
-              <Column field="departmentName" header="Department Name" sortable className="font-bold text-slate-700"></Column>
-              <Column field="school.schoolName" header="School" sortable className="text-slate-500"></Column>
-            </DataTable>
+            <div className="rounded-[2.5rem] border border-slate-100 overflow-hidden shadow-sm">
+              <DataTable 
+                value={departments?.departments} 
+                loading={isLoading} 
+                className="p-datatable-sm custom-modern-table" 
+                paginator 
+                rows={10} 
+                emptyMessage="No departmental records synchronized."
+                responsiveLayout="stack"
+                rowClassName={() => 'hover:bg-slate-50/50 transition-colors duration-200'}
+              >
+                <Column 
+                  field="id" 
+                  header="ID" 
+                  sortable 
+                  className="font-black text-slate-400 px-8 py-6 text-xs" 
+                  style={{ width: '100px' }}
+                />
+                <Column 
+                  header="DEPARTMENT NAME" 
+                  sortable 
+                  className="font-black text-slate-800 px-8 py-6 text-lg"
+                  body={(row) => (
+                    <div className="flex items-center gap-4">
+                      <div className="w-10 h-10 rounded-xl bg-red-50 flex items-center justify-center text-[#701515]">
+                        <i className="pi pi-building"></i>
+                      </div>
+                      <span className="tracking-tight">{row.departmentName}</span>
+                    </div>
+                  )}
+                />
+                <Column 
+                  header="PARENT SCHOOL" 
+                  sortable 
+                  className="px-8 py-6"
+                  body={(row) => (
+                    <div className="flex items-center gap-2">
+                      <span className="bg-amber-50 text-amber-700 text-[10px] font-black px-3 py-1 rounded-lg uppercase tracking-widest border border-amber-100">
+                        {row.school?.schoolName}
+                      </span>
+                    </div>
+                  )}
+                />
+              </DataTable>
+            </div>
           </div>
         </Card>
       </motion.div>
