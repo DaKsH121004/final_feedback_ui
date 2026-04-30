@@ -175,11 +175,48 @@ const FacultyPage = () => {
         />
       </div>
     );
+  const [globalFilter, setGlobalFilter] = useState('');
+
+  const renderHeader = () => {
     return (
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 mb-8">
+        <div>
+          <div className="flex items-center gap-3 mb-2">
+            <div className="w-1.5 h-6 bg-[#701515] rounded-full"></div>
+            <h2 className="text-3xl font-serif font-black text-slate-900 tracking-tight">Faculty Registry</h2>
+          </div>
+          <p className="text-sm font-bold text-slate-400 uppercase tracking-widest ml-4">
+            {faculty?.faculties?.length || 0} Professional Records synchronized
+          </p>
+        </div>
+        
+        <div className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto">
+          <div className="relative w-full sm:w-80 group">
+            <i className="pi pi-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-[#701515] transition-colors"></i>
+            <InputText
+              value={globalFilter}
+              onChange={(e) => setGlobalFilter(e.target.value)}
+              placeholder="Search by Name, Code, or Email..."
+              className="w-full pl-12 pr-4 py-4 rounded-2xl border-slate-100 bg-slate-50/50 focus:ring-8 focus:ring-[#701515]/5 transition-all font-bold text-slate-700"
+            />
+          </div>
+          <Button
+            label="Download Dossier"
+            icon="pi pi-file-excel"
+            className="p-button-text p-button-secondary font-black text-[10px] uppercase tracking-widest border-2 border-slate-100 rounded-2xl px-8 h-14 hover:bg-slate-50 transition-all w-full sm:w-auto"
+            onClick={downloadExcel}
+            disabled={!faculty?.faculties?.length}
+          />
+        </div>
+      </div>
+    );
+  };
+
+  return (
     <div className="max-w-7xl mx-auto p-4 md:p-8 space-y-12">
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
         {/* Registration Card */}
-        <Card className="shadow-2xl rounded-[2.5rem] border-none overflow-hidden mb-12 bg-white/80 backdrop-blur-sm relative">
+        <Card className="shadow-2xl rounded-[2.5rem] border-none overflow-hidden mb-12 bg-white relative">
            <div className="absolute top-0 right-0 p-12 opacity-5 pointer-events-none">
              <i className="pi pi-users text-9xl text-white" />
            </div>
@@ -294,24 +331,9 @@ const FacultyPage = () => {
         </Card>
 
         {/* List Card */}
-        <Card className="shadow-2xl rounded-[2.5rem] border-none overflow-hidden bg-white/80 backdrop-blur-sm">
+        <Card className="shadow-2xl rounded-[2.5rem] border-none overflow-hidden bg-white relative">
           <div className="p-8 md:p-12">
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 mb-12">
-              <div>
-                <div className="flex items-center gap-3 mb-2">
-                  <div className="w-1.5 h-6 bg-[#701515] rounded-full"></div>
-                  <h2 className="text-3xl font-serif font-black text-slate-900 tracking-tight">Faculty Registry</h2>
-                </div>
-                <p className="text-sm font-bold text-slate-400 uppercase tracking-widest ml-4">{faculty?.length || 0} Professional Records</p>
-              </div>
-              <Button
-                label="Download Dossier (.xlsx)"
-                icon="pi pi-file-excel"
-                className="p-button-text p-button-secondary font-black text-[10px] uppercase tracking-widest border-2 border-slate-100 rounded-2xl px-8 h-12 hover:bg-slate-50 transition-all"
-                onClick={downloadExcel}
-                disabled={!faculty?.faculties?.length}
-              />
-            </div>
+            {renderHeader()}
 
             <div className="rounded-[2.5rem] border border-slate-100 overflow-hidden shadow-sm">
               <DataTable
@@ -320,13 +342,14 @@ const FacultyPage = () => {
                 className="p-datatable-sm custom-modern-table"
                 paginator
                 rows={10}
-                emptyMessage="No faculty records synchronized."
+                globalFilter={globalFilter}
+                emptyMessage="No matching faculty records found."
                 responsiveLayout="stack"
                 rowClassName={() => 'hover:bg-slate-50/50 transition-colors duration-200'}
               >
                 <Column field="id" header="ID" className="font-bold text-slate-400" />
-                <Column field="facultyName" header="Faculty Name" className="font-bold text-slate-800" />
-                <Column field="facultyCode" header="Code" className="font-bold text-[#701515]" />
+                <Column field="facultyName" header="Faculty Name" className="font-bold text-slate-800" sortable />
+                <Column field="facultyCode" header="Code" className="font-bold text-[#701515]" sortable />
                 <Column field="facultyEmail" header="Email" className="font-semibold text-slate-600" />
                 <Column field="facultyPhone" header="Phone" className="font-semibold text-slate-600" />
                 <Column 
@@ -334,8 +357,9 @@ const FacultyPage = () => {
                   header="Rating" 
                   body={(row) => (row.averageRating || 0).toFixed(2)}
                   className="font-bold text-amber-600 text-center" 
+                  sortable
                 />
-                <Column field="totalResponses" header="Responses" className="text-center font-bold text-slate-500" />
+                <Column field="totalResponses" header="Responses" className="text-center font-bold text-slate-500" sortable />
                 <Column
                   header="Departments"
                   body={(row) => row.departments?.map(d => d.departmentName).join(', ')}
