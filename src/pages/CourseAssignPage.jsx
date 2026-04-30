@@ -241,6 +241,8 @@ import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
 import { Dropdown } from 'primereact/dropdown';
 import { Message } from 'primereact/message';
+import { Dialog } from 'primereact/dialog';
+import * as XLSX from 'xlsx';
 import {
   useGetAssignmentsQuery,
   useAddAssignmentMutation,
@@ -248,7 +250,8 @@ import {
   useDeleteAssignmentMutation,
   useGetFacultyQuery,
   useGetDepartmentsQuery,
-  useGetCoursesQuery
+  useGetCoursesQuery,
+  useBulkUploadAssignmentsMutation
 } from '../services/api';
 import { motion } from 'motion/react';
 
@@ -259,8 +262,18 @@ const CourseAssignPage = () => {
   const [editingId, setEditingId] = useState(null);
   const [submitted, setSubmitted] = useState(false);
 
+  // Bulk Upload States
+  const [showBulkUpload, setShowBulkUpload] = useState(false);
+  const [excelData, setExcelData] = useState([]);
+  const [isUploading, setIsUploading] = useState(false);
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [bulkError, setBulkError] = useState(null);
+  const [bulkSuccess, setBulkSuccess] = useState(null);
+
   const { data: assignmentsResponse, isLoading: assignmentsLoading } =
     useGetAssignmentsQuery();
+  
+  const [bulkUploadAssignments] = useBulkUploadAssignmentsMutation();
 
   const { data: facultyResponse } = useGetFacultyQuery();
   const { data: departmentsResponse } = useGetDepartmentsQuery();
@@ -290,6 +303,74 @@ const CourseAssignPage = () => {
     setSelectedDepartment(null);
     setSelectedCourse(null);
     setEditingId(null);
+  };
+
+  const handleFileUpload = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setSelectedFile(file);
+
+    const reader = new FileReader();
+    reader.onload = (evt) => {
+      const bstr = evt.target.result;
+      const wb = XLSX.read(bstr, { type: 'binary' });
+      const wsname = wb.SheetNames[0];
+      const ws = wb.Sheets[wsname];
+      const data = XLSX.utils.sheet_to_json(ws);
+      
+      const previewData = data.map((row, index) => ({
+        id: index,
+        department: row['Department'] || row['department'] || '',
+        courseName: row['Course Name'] || row['course name'] || '',
+        faculty: row['Faculty Name'] || row['faculty name'] || ''
+      }));
+      setExcelData(previewData);
+    };
+    reader.readAsBinaryString(file);
+    
+    // Reset file input
+    e.target.value = null;
+  };
+
+  const downloadTemplate = () => {
+    const ws = XLSX.utils.json_to_sheet([{
+      "Course Name": "",
+      "Faculty Name": "",
+      "Department": ""
+    }]);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Template");
+    XLSX.writeFile(wb, "bulk_assignment_template.xlsx");
+  };
+
+  const handleBulkSubmit = async () => {
+    if (!selectedFile) return;
+
+    const formData = new FormData();
+    formData.append('file', selectedFile);
+
+    setIsUploading(true);
+    setBulkError(null);
+    setBulkSuccess(null);
+    try {
+      const response = await bulkUploadAssignments(formData).unwrap();
+      setBulkSuccess(response.message);
+      setExcelData([]);
+      setSelectedFile(null);
+      // Don't close immediately if there were skips, let admin see it
+      if (!response.message.includes("Skipped")) {
+        setTimeout(() => {
+          setShowBulkUpload(false);
+          setBulkSuccess(null);
+        }, 5000);
+      }
+    } catch (error) {
+      console.error("Bulk upload failed:", error);
+      const errorMsg = error?.data?.message || "Bulk upload failed. Please check the file format.";
+      setBulkError(errorMsg);
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -375,11 +456,20 @@ const CourseAssignPage = () => {
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
         {/* FORM */}
         <Card className="shadow-2xl rounded-3xl mb-8">
-          <div className="bg-gradient-to-r from-orange-500 to-red-600 p-8 rounded-t-3xl text-white mb-8">
-            <h1 className="text-4xl font-bold">Course Assignment</h1>
-            <p className="mt-2 text-orange-100">
-              Assign Faculty with Department and Course
-            </p>
+          <div className="bg-gradient-to-r from-orange-500 to-red-600 p-8 rounded-t-3xl text-white mb-8 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div>
+              <h1 className="text-4xl font-bold">Course Assignment</h1>
+              <p className="mt-2 text-orange-100">
+                Assign Faculty with Department and Course
+              </p>
+            </div>
+            <Button
+              type="button"
+              label="Bulk Upload (.xlsx)"
+              icon="pi pi-upload"
+              className="p-button-outlined text-white border-white hover:bg-white/20 whitespace-nowrap"
+              onClick={() => setShowBulkUpload(true)}
+            />
           </div>
 
           <form onSubmit={handleSubmit} className="px-4 pb-6">
@@ -472,6 +562,95 @@ const CourseAssignPage = () => {
             </div>
           </form>
         </Card>
+
+        {/* BULK UPLOAD DIALOG */}
+        <Dialog
+          header="Bulk Assign Courses"
+          visible={showBulkUpload}
+          style={{ width: '60vw' }}
+          breakpoints={{ '960px': '75vw', '641px': '90vw' }}
+          onHide={() => {
+            setShowBulkUpload(false);
+            setExcelData([]);
+            setBulkError(null);
+          }}
+          className="rounded-3xl"
+        >
+          <div className="flex flex-col gap-6 pt-2">
+            {bulkError && (
+              <Message severity="error" text={bulkError} className="w-full mb-2" />
+            )}
+            {bulkSuccess && (
+              <Message 
+                severity={bulkSuccess.includes("Skipped") ? "warn" : "success"} 
+                content={(
+                  <div className="flex flex-col gap-1 py-1">
+                    <span className="font-bold">Bulk Upload Result:</span>
+                    <span className="text-sm">{bulkSuccess}</span>
+                  </div>
+                )} 
+                className="w-full mb-2" 
+              />
+            )}
+            <div className="flex flex-wrap items-center gap-4">
+              <input
+                type="file"
+                accept=".xlsx, .xls"
+                id="excel-upload"
+                className="hidden"
+                onChange={handleFileUpload}
+              />
+              <Button
+                type="button"
+                label="Select Excel File"
+                icon="pi pi-file-excel"
+                className="p-button-outlined p-button-info"
+                onClick={() => document.getElementById('excel-upload').click()}
+              />
+              <Button
+                type="button"
+                label="Download Template"
+                icon="pi pi-download"
+                className="p-button-text p-button-secondary"
+                onClick={downloadTemplate}
+              />
+              <span className="text-sm text-slate-500">
+                Required columns: <b>Course Name</b>, <b>Faculty Name</b>, <b>Department</b>
+              </span>
+            </div>
+
+            {excelData.length > 0 && (
+              <div className="border border-slate-200 rounded-xl overflow-hidden mt-4">
+                <DataTable value={excelData} paginator rows={5} responsiveLayout="scroll" className="p-datatable-sm">
+                  <Column field="courseName" header="Course Name" />
+                  <Column field="faculty" header="Faculty Name" />
+                  <Column field="department" header="Department" />
+                </DataTable>
+              </div>
+            )}
+
+            <div className="flex justify-end gap-3 mt-4">
+              <Button
+                type="button"
+                label="Cancel"
+                className="p-button-text p-button-secondary"
+                onClick={() => {
+                  setShowBulkUpload(false);
+                  setExcelData([]);
+                }}
+              />
+              <Button
+                type="button"
+                label="Process Upload"
+                icon="pi pi-check"
+                className="p-button-success"
+                disabled={excelData.length === 0 || isUploading}
+                loading={isUploading}
+                onClick={handleBulkSubmit}
+              />
+            </div>
+          </div>
+        </Dialog>
 
         {/* TABLE */}
         <Card className="shadow-2xl rounded-3xl">

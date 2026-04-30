@@ -377,29 +377,25 @@ const DashboardPage = () => {
       icon: "pi-users",
       color: "orange",
     },
+    {
+      title: "Total Courses",
+      value: dashboardData?.totalCourses || 0,
+      icon: "pi-book",
+      color: "indigo",
+    },
+    {
+      title: "Departments",
+      value: dashboardData?.totalDepartments || 0,
+      icon: "pi-building",
+      color: "emerald",
+    },
   ];
 
   const topFaculty = dashboardData?.faculties || [];
 
-  // ── Mock / derived chart data ─────────────────────────────────────────────
-  // Replace these with real API fields when available
-  const departmentPerformance = dashboardData?.departmentStats || [
-    { dept: "CSE", avgRating: 4.2, feedbacks: 42 },
-    { dept: "ECE", avgRating: 3.8, feedbacks: 35 },
-    { dept: "ME",  avgRating: 4.0, feedbacks: 28 },
-    { dept: "Civil", avgRating: 3.6, feedbacks: 20 },
-    { dept: "MBA",  avgRating: 4.5, feedbacks: 15 },
-    { dept: "IT",  avgRating: 3.9, feedbacks: 31 },
-  ];
-
-  const facultyTrend = dashboardData?.facultyTrend || [
-    { month: "Nov", avgRating: 3.4 },
-    { month: "Dec", avgRating: 3.6 },
-    { month: "Jan", avgRating: 3.5 },
-    { month: "Feb", avgRating: 3.9 },
-    { month: "Mar", avgRating: 4.1 },
-    { month: "Apr", avgRating: 3.7 },
-  ];
+  const departmentPerformance = dashboardData?.departmentPerformance || [];
+  const facultyTrend = dashboardData?.ratingTrend || [];
+  const feedbackVolume = dashboardData?.feedbackVolume || [];
 
   // Top 5 faculty for bar chart
   const topFacultyChart = topFaculty.slice(0, 5).map((f) => ({
@@ -483,7 +479,7 @@ const DashboardPage = () => {
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
                 <XAxis
-                  dataKey="dept"
+                  dataKey="label"
                   tick={{ fontSize: 11, fontWeight: 700, fill: "#94a3b8" }}
                   axisLine={false}
                   tickLine={false}
@@ -497,7 +493,7 @@ const DashboardPage = () => {
                 />
                 <Tooltip content={<CustomTooltip />} cursor={{ fill: "#f8fafc" }} />
                 <Bar
-                  dataKey="avgRating"
+                  dataKey="value"
                   name="Avg Rating"
                   fill="url(#deptGrad)"
                   radius={[8, 8, 0, 0]}
@@ -531,14 +527,14 @@ const DashboardPage = () => {
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
                 <XAxis
-                  dataKey="month"
+                  dataKey="label"
                   tick={{ fontSize: 11, fontWeight: 700, fill: "#94a3b8" }}
                   axisLine={false}
                   tickLine={false}
                 />
                 <YAxis
-                  domain={[3, 5]}
-                  ticks={[3, 3.5, 4, 4.5, 5]}
+                  domain={[0, 5]}
+                  ticks={[0, 1, 2, 3, 4, 5]}
                   tick={{ fontSize: 11, fill: "#94a3b8" }}
                   axisLine={false}
                   tickLine={false}
@@ -546,7 +542,7 @@ const DashboardPage = () => {
                 <Tooltip content={<CustomTooltip />} />
                 <Line
                   type="monotone"
-                  dataKey="avgRating"
+                  dataKey="value"
                   name="Avg Rating"
                   stroke="url(#lineGrad)"
                   strokeWidth={3}
@@ -683,7 +679,7 @@ const DashboardPage = () => {
               <SectionHeader title="Feedback Volume" subtitle="By department" />
               <ResponsiveContainer width="100%" height={180}>
                 <BarChart
-                  data={departmentPerformance}
+                  data={feedbackVolume}
                   margin={{ top: 4, right: 4, left: -28, bottom: 0 }}
                   barSize={16}
                 >
@@ -695,7 +691,7 @@ const DashboardPage = () => {
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
                   <XAxis
-                    dataKey="dept"
+                    dataKey="label"
                     tick={{ fontSize: 10, fontWeight: 700, fill: "#94a3b8" }}
                     axisLine={false}
                     tickLine={false}
@@ -707,7 +703,7 @@ const DashboardPage = () => {
                   />
                   <Tooltip content={<CustomTooltip />} cursor={{ fill: "#f8fafc" }} />
                   <Bar
-                    dataKey="feedbacks"
+                    dataKey="value"
                     name="Feedbacks"
                     fill="url(#volGrad)"
                     radius={[6, 6, 0, 0]}

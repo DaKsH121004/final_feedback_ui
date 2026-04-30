@@ -146,6 +146,17 @@ export const api = createApi({
       query: (id) => ({ url: `/assignment/${id}`, method: 'DELETE' }),
       invalidatesTags: ['Assignments'],
     }),
+    bulkUploadAssignments: builder.mutation({
+      query: (formData) => ({
+        url: '/assignment/bulk-upload',
+        method: 'POST',
+        data: formData,
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      }),
+      invalidatesTags: ['Assignments', 'Courses', 'Faculty'],
+    }),
   }),
   tagTypes: [
     "FormStatus",
@@ -181,5 +192,6 @@ export const {
   useGetAssignmentsQuery,
   useAddAssignmentMutation,
   useUpdateAssignmentMutation,
-  useDeleteAssignmentMutation
+  useDeleteAssignmentMutation,
+  useBulkUploadAssignmentsMutation
 } = api;
