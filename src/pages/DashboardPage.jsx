@@ -584,8 +584,10 @@ const DashboardPage = () => {
               <SectionHeader title="Department Champions" subtitle="Highest rated faculty per division" />
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                 {bestFacultyPerDept.map((item, idx) => (
-                  <div key={idx} className="flex items-center gap-4 p-4 rounded-2xl border border-slate-100 bg-slate-50">
-                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#701515] to-[#4a0d0d] text-white font-black text-xl flex items-center justify-center shadow-inner">
+                  <div key={idx} 
+                       onClick={() => setSelectedFaculty(item)}
+                       className="flex items-center gap-4 p-4 rounded-2xl border border-slate-100 bg-slate-50 cursor-pointer hover:bg-white hover:shadow-xl hover:border-[#c5a028]/30 transition-all duration-300 group">
+                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#701515] to-[#4a0d0d] text-white font-black text-xl flex items-center justify-center shadow-inner group-hover:scale-110 transition-transform duration-300">
                       {item?.facultyName?.charAt(0) || 'F'}
                     </div>
                     <div className="flex-1 overflow-hidden">
