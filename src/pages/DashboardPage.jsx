@@ -288,29 +288,32 @@ const CustomTooltip = ({ active, payload, label }) => {
 // ── Stat Card ───────────────────────────────────────────────────────────────
 const StatCard = ({ stat, idx }) => {
   const colorMap = {
-    indigo: {
-      bg: "bg-indigo-50",
-      text: "text-indigo-600",
-      hoverBg: "group-hover:bg-indigo-600",
+    maroon: {
+      bg: "bg-red-50",
+      text: "text-[#701515]",
+      hoverBg: "group-hover:bg-[#701515]",
       hoverText: "group-hover:text-white",
-      gradient: "from-indigo-500 to-indigo-700",
+      iconBg: "bg-[#701515]/10",
     },
-    emerald: {
-      bg: "bg-emerald-50",
-      text: "text-emerald-600",
-      hoverBg: "group-hover:bg-emerald-600",
+    gold: {
+      bg: "bg-amber-50",
+      text: "text-[#c5a028]",
+      hoverBg: "group-hover:bg-[#c5a028]",
       hoverText: "group-hover:text-white",
-      gradient: "from-emerald-500 to-emerald-700",
+      iconBg: "bg-[#c5a028]/10",
     },
-    orange: {
-      bg: "bg-orange-50",
-      text: "text-orange-600",
-      hoverBg: "group-hover:bg-orange-600",
+    slate: {
+      bg: "bg-slate-50",
+      text: "text-slate-600",
+      hoverBg: "group-hover:bg-slate-700",
       hoverText: "group-hover:text-white",
-      gradient: "from-orange-500 to-orange-700",
+      iconBg: "bg-slate-200",
     },
   };
-  const c = colorMap[stat.color];
+  
+  // Map incoming colors to MRU theme
+  const themeColor = stat.color === 'indigo' ? 'maroon' : (stat.color === 'emerald' ? 'gold' : 'slate');
+  const c = colorMap[themeColor];
 
   return (
     <motion.div
@@ -318,25 +321,29 @@ const StatCard = ({ stat, idx }) => {
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: idx * 0.1, type: "spring", stiffness: 120 }}
     >
-      <Card className="shadow-sm hover:shadow-2xl transition-all duration-300 rounded-3xl border-none overflow-hidden group cursor-default">
-        <div className="flex justify-between items-start mb-4">
-          <div
-            className={`w-12 h-12 rounded-2xl ${c.bg} ${c.text} ${c.hoverBg} ${c.hoverText} flex items-center justify-center transition-colors duration-500`}
-          >
-            <i className={`pi ${stat.icon} text-xl`} />
+      <Card className="shadow-sm hover:shadow-2xl transition-all duration-500 rounded-[2rem] border-none overflow-hidden group cursor-default bg-white relative">
+        <div className="absolute top-0 right-0 w-32 h-32 bg-slate-50 rounded-full -mr-16 -mt-16 group-hover:scale-150 transition-transform duration-700 opacity-50" />
+        
+        <div className="relative z-10">
+          <div className="flex justify-between items-start mb-6">
+            <div
+              className={`w-14 h-14 rounded-2xl ${c.iconBg} ${c.text} ${c.hoverBg} ${c.hoverText} flex items-center justify-center transition-all duration-500 shadow-inner`}
+            >
+              <i className={`pi ${stat.icon} text-2xl`} />
+            </div>
+            {stat.change && (
+              <span className="text-[10px] font-black text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-100 uppercase tracking-widest">
+                {stat.change}
+              </span>
+            )}
           </div>
-          {stat.change && (
-            <span className="text-xs font-bold text-emerald-500 bg-emerald-50 px-2 py-1 rounded-full">
-              {stat.change}
-            </span>
-          )}
+          <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2 ml-1">
+            {stat.title}
+          </p>
+          <p className="text-4xl font-black text-slate-900 tracking-tighter">
+            {stat.value}
+          </p>
         </div>
-        <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">
-          {stat.title}
-        </p>
-        <p className="text-4xl font-black text-slate-900 tracking-tight">
-          {stat.value}
-        </p>
       </Card>
     </motion.div>
   );
@@ -344,9 +351,12 @@ const StatCard = ({ stat, idx }) => {
 
 // ── Section Header ──────────────────────────────────────────────────────────
 const SectionHeader = ({ title, subtitle }) => (
-  <div className="mb-5">
-    <h2 className="text-lg font-black text-slate-900 tracking-tight">{title}</h2>
-    {subtitle && <p className="text-xs text-slate-400 font-medium mt-0.5">{subtitle}</p>}
+  <div className="mb-8">
+    <h2 className="text-xl font-serif font-black text-slate-900 tracking-tight flex items-center gap-3">
+      <div className="w-1 h-6 bg-[#701515] rounded-full"></div>
+      {title}
+    </h2>
+    {subtitle && <p className="text-xs text-slate-400 font-bold uppercase tracking-widest mt-2 ml-4">{subtitle}</p>}
   </div>
 );
 
@@ -358,33 +368,33 @@ const DashboardPage = () => {
 
   const stats = [
     {
-      title: "Total Feedbacks",
+      title: "Total Feedback",
       value: dashboardData?.totalFeedback || 0,
       icon: "pi-comments",
       color: "indigo",
       change: "+12%",
     },
     {
-      title: "Avg. Rating",
+      title: "Academic Quality",
       value: (dashboardData?.averageRating || 0).toFixed(2),
-      icon: "pi-star",
+      icon: "pi-star-fill",
       color: "emerald",
       change: "+0.3",
     },
     {
-      title: "Faculty Members",
+      title: "Faculty Cadre",
       value: dashboardData?.totalFaculty || 0,
       icon: "pi-users",
       color: "orange",
     },
     {
-      title: "Total Courses",
+      title: "Curriculum Scope",
       value: dashboardData?.totalCourses || 0,
       icon: "pi-book",
       color: "indigo",
     },
     {
-      title: "Departments",
+      title: "Divisions",
       value: dashboardData?.totalDepartments || 0,
       icon: "pi-building",
       color: "emerald",
@@ -392,364 +402,230 @@ const DashboardPage = () => {
   ];
 
   const topFaculty = dashboardData?.faculties || [];
-
   const departmentPerformance = dashboardData?.departmentPerformance || [];
   const facultyTrend = dashboardData?.ratingTrend || [];
   const feedbackVolume = dashboardData?.feedbackVolume || [];
 
-  // Top 5 faculty for bar chart
   const topFacultyChart = topFaculty.slice(0, 5).map((f) => ({
-    name: f.facultyName?.split(" ").slice(-1)[0] || f.facultyName, // last name only
+    name: f.facultyName?.split(" ").slice(-1)[0] || f.facultyName,
     fullName: f.facultyName,
     rating: parseFloat((f.averageRating || 0).toFixed(2)),
   }));
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="flex flex-col items-center gap-3">
-          <i className="pi pi-spin pi-spinner text-3xl text-indigo-500" />
-          <p className="text-slate-500 font-medium text-sm">Loading dashboard…</p>
+      <div className="flex items-center justify-center h-96">
+        <div className="flex flex-col items-center gap-6">
+          <div className="relative">
+            <i className="pi pi-spin pi-spinner text-5xl text-[#701515]" />
+            <div className="absolute inset-0 flex items-center justify-center">
+              <i className="pi pi-university text-xs text-[#701515]" />
+            </div>
+          </div>
+          <p className="text-slate-400 font-black uppercase tracking-[0.3em] text-xs">Authenticating Dashboard Data…</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="max-w-7xl mx-auto space-y-10">
-      {/* ── Header ── */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+    <div className="max-w-full space-y-12 pb-12">
+      {/* ── Welcome Section ── */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-100">
         <div>
-          <h1 className="text-4xl font-black text-slate-900 tracking-tight mb-1">
-            System Overview
+          <div className="flex items-center gap-3 mb-3">
+             <span className="bg-red-50 text-[#701515] text-[10px] font-black px-3 py-1 rounded-lg uppercase tracking-widest border border-red-100">Official Admin Portal</span>
+          </div>
+          <h1 className="text-4xl md:text-5xl font-serif font-black text-slate-900 tracking-tighter mb-3">
+            Academic Performance <span className="text-[#701515]">Analytics</span>
           </h1>
-          <p className="text-slate-500 font-medium">
-            Welcome back! Here's the latest summary of faculty feedback.
+          <p className="text-slate-500 font-medium text-lg opacity-80 max-w-2xl">
+            Monitoring the pulse of educational excellence at Manav Rachna University through real-time student insights.
           </p>
         </div>
-        <div className="flex gap-3">
+        <div className="flex flex-wrap gap-4">
           <Button
-            label="Form Control"
-            icon="pi pi-cog"
-            className="p-button-secondary rounded-xl font-bold"
+            label="System Configuration"
+            icon="pi pi-sliders-h"
+            className="p-button-text p-button-secondary rounded-2xl font-black text-xs uppercase tracking-widest px-6 py-4 hover:bg-slate-50 transition-all border border-slate-200"
             onClick={() => setVisible(true)}
           />
           <Link to="/create-form">
             <Button
-              label="New Feedback"
-              icon="pi pi-plus"
-              className="p-button-primary rounded-xl font-bold px-6 shadow-lg shadow-indigo-100"
+              label="Initiate Feedback"
+              icon="pi pi-plus-circle"
+              className="rounded-2xl font-black text-xs uppercase tracking-widest px-8 py-4 shadow-xl shadow-red-900/20 border-none transition-transform hover:scale-105 active:scale-95"
+              style={{ background: 'linear-gradient(135deg, #701515 0%, #4a0d0d 100%)', color: '#fff' }}
             />
           </Link>
         </div>
       </div>
 
       {/* ── Stats ── */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
         {stats.map((stat, idx) => (
           <StatCard key={idx} stat={stat} idx={idx} />
         ))}
       </div>
 
-      {/* ── Charts Row 1 ── */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      {/* ── Analytics Grid ── */}
+      <div className="grid grid-cols-1 xl:grid-cols-12 gap-10">
+        
+        {/* Left Column: Visual Analytics */}
+        <div className="xl:col-span-8 space-y-10">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {/* Dept Performance */}
+            <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.3 }}>
+              <Card className="shadow-sm rounded-[2.5rem] border-none p-4">
+                <SectionHeader title="Divisional Quality" subtitle="Departmental rating distribution" />
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart data={departmentPerformance} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                    <defs>
+                      <linearGradient id="mruMaroon" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="#701515" stopOpacity={1} />
+                        <stop offset="100%" stopColor="#4a0d0d" stopOpacity={0.8} />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
+                    <XAxis dataKey="label" tick={{ fontSize: 10, fontWeight: 800, fill: "#64748b" }} axisLine={false} tickLine={false} />
+                    <YAxis domain={[0, 5]} ticks={[0, 1, 2, 3, 4, 5]} tick={{ fontSize: 10, fontWeight: 700, fill: "#94a3b8" }} axisLine={false} tickLine={false} />
+                    <Tooltip content={<CustomTooltip />} cursor={{ fill: "#f8fafc" }} />
+                    <Bar dataKey="value" fill="url(#mruMaroon)" radius={[10, 10, 0, 0]} barSize={32} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </Card>
+            </motion.div>
 
-        {/* Department Avg Rating Bar Chart */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-        >
-          <Card className="shadow-sm rounded-3xl border-none h-full">
-            <SectionHeader
-              title="Department Performance"
-              subtitle="Average rating per department"
-            />
-            <ResponsiveContainer width="100%" height={240}>
-              <BarChart
-                data={departmentPerformance}
-                margin={{ top: 4, right: 8, left: -20, bottom: 0 }}
-                barSize={28}
-              >
-                <defs>
-                  <linearGradient id="deptGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#6366f1" stopOpacity={1} />
-                    <stop offset="100%" stopColor="#a5b4fc" stopOpacity={0.7} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
-                <XAxis
-                  dataKey="label"
-                  tick={{ fontSize: 11, fontWeight: 700, fill: "#94a3b8" }}
-                  axisLine={false}
-                  tickLine={false}
-                />
-                <YAxis
-                  domain={[0, 5]}
-                  ticks={[0, 1, 2, 3, 4, 5]}
-                  tick={{ fontSize: 11, fill: "#94a3b8" }}
-                  axisLine={false}
-                  tickLine={false}
-                />
-                <Tooltip content={<CustomTooltip />} cursor={{ fill: "#f8fafc" }} />
-                <Bar
-                  dataKey="value"
-                  name="Avg Rating"
-                  fill="url(#deptGrad)"
-                  radius={[8, 8, 0, 0]}
-                />
-              </BarChart>
-            </ResponsiveContainer>
-          </Card>
-        </motion.div>
+            {/* Rating Trend */}
+            <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.4 }}>
+              <Card className="shadow-sm rounded-[2.5rem] border-none p-4">
+                <SectionHeader title="Academic Trajectory" subtitle="Longitudinal rating progression" />
+                <ResponsiveContainer width="100%" height={300}>
+                  <LineChart data={facultyTrend} margin={{ top: 10, right: 20, left: -20, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
+                    <XAxis dataKey="label" tick={{ fontSize: 10, fontWeight: 800, fill: "#64748b" }} axisLine={false} tickLine={false} />
+                    <YAxis domain={[0, 5]} ticks={[0, 1, 2, 3, 4, 5]} tick={{ fontSize: 10, fontWeight: 700, fill: "#94a3b8" }} axisLine={false} tickLine={false} />
+                    <Tooltip content={<CustomTooltip />} />
+                    <Line type="monotone" dataKey="value" stroke="#c5a028" strokeWidth={4} dot={{ r: 6, fill: "#701515", strokeWidth: 3, stroke: "#fff" }} activeDot={{ r: 8, strokeWidth: 0 }} />
+                  </LineChart>
+                </ResponsiveContainer>
+              </Card>
+            </motion.div>
+          </div>
 
-        {/* Faculty Rating Trend Line Chart */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
-        >
-          <Card className="shadow-sm rounded-3xl border-none h-full">
-            <SectionHeader
-              title="Rating Trend"
-              subtitle="Monthly average faculty rating"
-            />
-            <ResponsiveContainer width="100%" height={240}>
-              <LineChart
-                data={facultyTrend}
-                margin={{ top: 4, right: 8, left: -20, bottom: 0 }}
-              >
-                <defs>
-                  <linearGradient id="lineGrad" x1="0" y1="0" x2="1" y2="0">
-                    <stop offset="0%" stopColor="#10b981" />
-                    <stop offset="100%" stopColor="#6366f1" />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
-                <XAxis
-                  dataKey="label"
-                  tick={{ fontSize: 11, fontWeight: 700, fill: "#94a3b8" }}
-                  axisLine={false}
-                  tickLine={false}
-                />
-                <YAxis
-                  domain={[0, 5]}
-                  ticks={[0, 1, 2, 3, 4, 5]}
-                  tick={{ fontSize: 11, fill: "#94a3b8" }}
-                  axisLine={false}
-                  tickLine={false}
-                />
-                <Tooltip content={<CustomTooltip />} />
-                <Line
-                  type="monotone"
-                  dataKey="value"
-                  name="Avg Rating"
-                  stroke="url(#lineGrad)"
-                  strokeWidth={3}
-                  dot={{ r: 5, fill: "#6366f1", strokeWidth: 2, stroke: "#fff" }}
-                  activeDot={{ r: 7, fill: "#6366f1" }}
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          </Card>
-        </motion.div>
-      </div>
-
-      {/* ── Charts Row 2 + Faculty List ── */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-
-        {/* Top Faculty Bar Chart */}
-        <motion.div
-          className="lg:col-span-2"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5 }}
-        >
-          <Card className="shadow-sm rounded-3xl border-none h-full">
-            <SectionHeader
-              title="Top Faculty Ratings"
-              subtitle="Highest rated faculty members"
-            />
-            <ResponsiveContainer width="100%" height={220}>
-              <BarChart
-                layout="vertical"
-                data={topFacultyChart}
-                margin={{ top: 0, right: 16, left: 0, bottom: 0 }}
-                barSize={18}
-              >
-                <defs>
-                  <linearGradient id="facGrad" x1="0" y1="0" x2="1" y2="0">
-                    <stop offset="0%" stopColor="#f59e0b" stopOpacity={0.85} />
-                    <stop offset="100%" stopColor="#fbbf24" stopOpacity={1} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" horizontal={false} />
-                <XAxis
-                  type="number"
-                  domain={[0, 5]}
-                  ticks={[0, 1, 2, 3, 4, 5]}
-                  tick={{ fontSize: 11, fill: "#94a3b8" }}
-                  axisLine={false}
-                  tickLine={false}
-                />
-                <YAxis
-                  type="category"
-                  dataKey="name"
-                  tick={{ fontSize: 11, fontWeight: 700, fill: "#475569" }}
-                  axisLine={false}
-                  tickLine={false}
-                  width={60}
-                />
-                <Tooltip
-                  content={({ active, payload }) =>
-                    active && payload?.length ? (
-                      <div className="bg-white border border-slate-100 shadow-xl rounded-2xl px-4 py-3">
-                        <p className="text-xs font-bold text-slate-500 mb-1">
-                          {payload[0]?.payload?.fullName}
-                        </p>
-                        <p className="text-sm font-bold text-amber-500">
-                          ⭐ {payload[0]?.value}
-                        </p>
-                      </div>
-                    ) : null
-                  }
-                  cursor={{ fill: "#fafafa" }}
-                />
-                <Bar
-                  dataKey="rating"
-                  name="Rating"
-                  fill="url(#facGrad)"
-                  radius={[0, 8, 8, 0]}
-                />
-              </BarChart>
-            </ResponsiveContainer>
-
-            {/* Faculty list below chart */}
-            <div className="flex flex-col gap-3 mt-5">
-              {topFaculty.slice(0, 4).map((item, idx) => (
-                <div
-                  key={idx}
-                  className="flex items-center justify-between p-3 bg-slate-50 rounded-2xl border border-slate-100 hover:border-indigo-200 transition-colors"
-                >
-                  <div className="flex items-center gap-3">
-                    <Avatar
-                      label={item?.facultyName?.charAt(0)}
-                      shape="circle"
-                      className="bg-white text-indigo-600 font-bold shadow-sm"
-                    />
-                    <p className="text-sm font-bold text-slate-900">{item.facultyName}</p>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    {[...Array(5)].map((_, i) => (
-                      <i
-                        key={i}
-                        className={`pi pi-star-fill text-[10px] ${
-                          i < Math.round(item.averageRating || 0)
-                            ? "text-amber-400"
-                            : "text-slate-200"
-                        }`}
-                      />
-                    ))}
-                    <span className="ml-2 text-xs font-bold text-slate-500">
-                      {(item.averageRating || 0).toFixed(1)}
-                    </span>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            <Link to="/analytics">
-              <Button
-                label="View Detailed Analytics"
-                className="p-button-text p-button-sm w-full mt-5 font-bold"
-              />
-            </Link>
-          </Card>
-        </motion.div>
-
-        {/* Right Column */}
-        <div className="flex flex-col gap-6">
-          {/* Dept Feedback Volume */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.6 }}
-          >
-            <Card className="shadow-sm rounded-3xl border-none">
-              <SectionHeader title="Feedback Volume" subtitle="By department" />
-              <ResponsiveContainer width="100%" height={180}>
-                <BarChart
-                  data={feedbackVolume}
-                  margin={{ top: 4, right: 4, left: -28, bottom: 0 }}
-                  barSize={16}
-                >
+          {/* Feedback Volume */}
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }}>
+            <Card className="shadow-sm rounded-[2.5rem] border-none p-6">
+              <SectionHeader title="Submission Velocity" subtitle="Response volume across divisions" />
+              <ResponsiveContainer width="100%" height={250}>
+                <BarChart data={feedbackVolume} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                   <defs>
-                    <linearGradient id="volGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#10b981" stopOpacity={1} />
-                      <stop offset="100%" stopColor="#6ee7b7" stopOpacity={0.6} />
+                    <linearGradient id="mruGold" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#c5a028" stopOpacity={1} />
+                      <stop offset="100%" stopColor="#e5b80b" stopOpacity={0.6} />
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
-                  <XAxis
-                    dataKey="label"
-                    tick={{ fontSize: 10, fontWeight: 700, fill: "#94a3b8" }}
-                    axisLine={false}
-                    tickLine={false}
-                  />
-                  <YAxis
-                    tick={{ fontSize: 10, fill: "#94a3b8" }}
-                    axisLine={false}
-                    tickLine={false}
-                  />
-                  <Tooltip content={<CustomTooltip />} cursor={{ fill: "#f8fafc" }} />
-                  <Bar
-                    dataKey="value"
-                    name="Feedbacks"
-                    fill="url(#volGrad)"
-                    radius={[6, 6, 0, 0]}
-                  />
+                  <XAxis dataKey="label" tick={{ fontSize: 10, fontWeight: 800, fill: "#64748b" }} axisLine={false} tickLine={false} />
+                  <YAxis tick={{ fontSize: 10, fontWeight: 700, fill: "#94a3b8" }} axisLine={false} tickLine={false} />
+                  <Tooltip content={<CustomTooltip />} />
+                  <Bar dataKey="value" fill="url(#mruGold)" radius={[10, 10, 0, 0]} barSize={60} />
                 </BarChart>
               </ResponsiveContainer>
             </Card>
           </motion.div>
+        </div>
 
-          {/* CTA Card */}
-          <Card className="shadow-sm rounded-3xl border-none bg-indigo-600 text-white overflow-hidden relative">
-            <div className="relative z-10">
-              <h3 className="text-xl font-bold mb-2">Ready to analyze?</h3>
-              <p className="text-indigo-100 text-sm mb-6 opacity-80">
-                Generate comprehensive reports and insights from your feedback data.
-              </p>
-              <Link to="/analytics">
-                <Button
-                  label="Go to Analytics"
-                  icon="pi pi-arrow-right"
-                  iconPos="right"
-                  className="p-button-secondary w-full rounded-xl font-bold py-3"
-                />
+        {/* Right Column: Faculty Honors */}
+        <div className="xl:col-span-4 space-y-10">
+          <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.6 }}>
+            <Card className="shadow-2xl rounded-[2.5rem] border-none p-8 bg-white relative overflow-hidden h-full">
+              <div className="absolute top-0 right-0 p-8 opacity-5">
+                 <i className="pi pi-star text-9xl text-[#c5a028]" />
+              </div>
+              
+              <SectionHeader title="Excellence Registry" subtitle="Elite faculty performance" />
+              
+              <div className="space-y-6 mt-10">
+                {topFaculty.slice(0, 5).map((item, idx) => (
+                  <div key={idx} className="flex items-center justify-between p-5 bg-slate-50/50 rounded-2xl border border-slate-100 group hover:bg-white hover:shadow-xl hover:border-[#c5a028]/30 transition-all duration-300">
+                    <div className="flex items-center gap-4">
+                      <div className="relative">
+                        <Avatar label={item?.facultyName?.charAt(0)} shape="circle" className="bg-white text-[#701515] font-black shadow-md w-12 h-12 border-2 border-white" />
+                        {idx === 0 && <div className="absolute -top-1 -right-1 bg-[#c5a028] text-white w-5 h-5 rounded-full flex items-center justify-center border-2 border-white"><i className="pi pi-bookmark-fill text-[8px]" /></div>}
+                      </div>
+                      <div>
+                        <p className="text-sm font-black text-slate-800 leading-tight">{item.facultyName}</p>
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">MRU Faculty Member</p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className="flex items-center gap-1 mb-1 justify-end">
+                        <span className="text-sm font-black text-slate-700 mr-2">{(item.averageRating || 0).toFixed(1)}</span>
+                        <i className="pi pi-star-fill text-[12px] text-[#c5a028]" />
+                      </div>
+                      <div className="flex gap-0.5">
+                         {[...Array(5)].map((_, i) => (
+                           <div key={i} className={`h-1 w-3 rounded-full ${i < Math.round(item.averageRating || 0) ? 'bg-[#c5a028]' : 'bg-slate-200'}`} />
+                         ))}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <Link to="/analytics" className="block mt-10">
+                <Button label="Audit Performance Matrix" icon="pi pi-external-link" className="p-button-text p-button-sm w-full font-black text-xs uppercase tracking-widest text-[#701515] hover:bg-red-50 py-4 rounded-xl" />
               </Link>
+            </Card>
+          </motion.div>
+          
+          <Card className="shadow-sm rounded-[2.5rem] border-none bg-gradient-to-br from-[#701515] to-[#4a0d0d] text-white p-8 overflow-hidden relative group">
+            <div className="absolute -bottom-10 -right-10 w-48 h-48 bg-white/5 rounded-full blur-3xl group-hover:scale-150 transition-transform duration-1000" />
+            <div className="relative z-10">
+              <div className="w-12 h-12 bg-white/10 rounded-xl flex items-center justify-center mb-6 backdrop-blur-md border border-white/10">
+                <i className="pi pi-info-circle text-xl" />
+              </div>
+              <h3 className="text-2xl font-serif font-black mb-3">System Integrity</h3>
+              <p className="text-red-100/70 text-sm font-medium leading-relaxed mb-8">
+                All data points are verified against institutional academic standards for Session 2026.
+              </p>
+              <Button label="Generate Report" icon="pi pi-file-pdf" className="p-button-secondary w-full rounded-2xl font-black text-xs uppercase tracking-widest py-4 bg-white text-[#701515] border-none shadow-lg" />
             </div>
-            <div className="absolute top-[-20px] right-[-20px] w-32 h-32 bg-white/10 rounded-full blur-2xl" />
           </Card>
         </div>
       </div>
 
       {/* ── Form Control Dialog ── */}
       <Dialog
-        header="Feedback Form Control"
+        header={
+          <div className="flex items-center gap-3 py-2">
+            <div className="w-10 h-10 bg-red-50 rounded-xl flex items-center justify-center"><i className="pi pi-cog text-[#701515]" /></div>
+            <div className="flex flex-col">
+              <span className="text-xl font-black text-slate-900 leading-none">System Control</span>
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Feedback Portal Status</span>
+            </div>
+          </div>
+        }
         visible={visible}
         onHide={() => setVisible(false)}
-        className="rounded-2xl w-[400px]"
+        className="rounded-[2.5rem] w-[450px] overflow-hidden"
+        maskClassName="backdrop-blur-md bg-slate-900/20"
       >
-        <div className="flex flex-col gap-4">
-          <div className="flex flex-col items-center justify-between p-4 bg-slate-50 rounded-xl gap-3">
-            <div>
-              <p className="text-sm font-bold text-slate-800">Enable Feedback Form</p>
-              <p className="text-xs text-slate-500">
-                Toggle to allow students to submit feedback
+        <div className="p-2">
+          <div className="flex flex-col items-center gap-6 p-8 bg-slate-50/50 rounded-[2rem] border border-slate-100">
+            <div className="text-center">
+              <p className="text-lg font-black text-slate-800 mb-2">Live Portal Intake</p>
+              <p className="text-xs text-slate-500 font-medium leading-relaxed">
+                Toggle to authorize the commencement of student feedback for the current academic cycle.
               </p>
             </div>
             <FormToggle />
+            <div className="w-full h-px bg-slate-200 my-2" />
+            <div className="flex items-center gap-3 text-[10px] font-black text-slate-400 uppercase tracking-widest">
+               <i className="pi pi-shield text-emerald-500" />
+               Security Protocols Active
+            </div>
           </div>
         </div>
       </Dialog>
@@ -758,3 +634,4 @@ const DashboardPage = () => {
 };
 
 export default DashboardPage;
+
