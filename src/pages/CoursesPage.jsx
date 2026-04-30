@@ -233,25 +233,8 @@ const CoursesPage = () => {
                 responsiveLayout="stack"
                 rowClassName={() => 'hover:bg-slate-50/50 transition-colors duration-200'}
               >
-                <Column 
-                  field="id" 
-                  header="REF" 
-                  className="font-black text-slate-400 px-8 py-6 text-xs" 
-                  style={{ width: '120px' }}
-                />
-                <Column 
-                  field="courseName" 
-                  header="COURSE SPECIFICATION" 
-                  className="font-black text-slate-800 px-8 py-6 text-lg"
-                  body={(rowData) => (
-                    <div className="flex items-center gap-4">
-                      <div className="w-10 h-10 rounded-xl bg-red-50 flex items-center justify-center text-[#701515]">
-                        <i className="pi pi-book"></i>
-                      </div>
-                      <span className="tracking-tight">{rowData.courseName}</span>
-                    </div>
-                  )}
-                />
+                <Column field="id" header="ID" className="font-bold text-slate-400" />
+                <Column field="courseName" header="Course Name" className="font-bold text-slate-800" />
               </DataTable>
             </div>
           </div>

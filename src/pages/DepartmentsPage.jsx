@@ -147,37 +147,13 @@ const DepartmentsPage = () => {
                 responsiveLayout="stack"
                 rowClassName={() => 'hover:bg-slate-50/50 transition-colors duration-200'}
               >
+                <Column field="id" header="ID" sortable className="font-bold text-slate-400" />
+                <Column field="departmentName" header="Department Name" sortable className="font-bold text-slate-800" />
                 <Column 
-                  field="id" 
-                  header="ID" 
+                  header="School" 
                   sortable 
-                  className="font-black text-slate-400 px-8 py-6 text-xs" 
-                  style={{ width: '100px' }}
-                />
-                <Column 
-                  header="DEPARTMENT NAME" 
-                  sortable 
-                  className="font-black text-slate-800 px-8 py-6 text-lg"
-                  body={(row) => (
-                    <div className="flex items-center gap-4">
-                      <div className="w-10 h-10 rounded-xl bg-red-50 flex items-center justify-center text-[#701515]">
-                        <i className="pi pi-building"></i>
-                      </div>
-                      <span className="tracking-tight">{row.departmentName}</span>
-                    </div>
-                  )}
-                />
-                <Column 
-                  header="PARENT SCHOOL" 
-                  sortable 
-                  className="px-8 py-6"
-                  body={(row) => (
-                    <div className="flex items-center gap-2">
-                      <span className="bg-amber-50 text-amber-700 text-[10px] font-black px-3 py-1 rounded-lg uppercase tracking-widest border border-amber-100">
-                        {row.school?.schoolName}
-                      </span>
-                    </div>
-                  )}
+                  body={(row) => row.school?.schoolName}
+                  className="font-semibold text-[#701515]"
                 />
               </DataTable>
             </div>

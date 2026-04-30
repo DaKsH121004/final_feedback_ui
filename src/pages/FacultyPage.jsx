@@ -324,76 +324,24 @@ const FacultyPage = () => {
                 responsiveLayout="stack"
                 rowClassName={() => 'hover:bg-slate-50/50 transition-colors duration-200'}
               >
+                <Column field="id" header="ID" className="font-bold text-slate-400" />
+                <Column field="facultyName" header="Faculty Name" className="font-bold text-slate-800" />
+                <Column field="facultyCode" header="Code" className="font-bold text-[#701515]" />
+                <Column field="facultyEmail" header="Email" className="font-semibold text-slate-600" />
+                <Column field="facultyPhone" header="Phone" className="font-semibold text-slate-600" />
                 <Column 
-                  field="id" 
-                  header="REF" 
-                  className="font-black text-slate-400 px-6 py-6 text-xs" 
-                  style={{ width: '80px' }}
+                  field="averageRating" 
+                  header="Rating" 
+                  body={(row) => (row.averageRating || 0).toFixed(2)}
+                  className="font-bold text-amber-600 text-center" 
                 />
-                <Column 
-                  header="FACULTY DETAILS" 
-                  body={(row) => (
-                    <div className="flex items-center gap-4 py-2">
-                      <div className="relative">
-                        <div className="w-12 h-12 rounded-2xl bg-red-50 flex items-center justify-center text-[#701515] font-black text-lg border border-red-100 shadow-inner">
-                          {row.facultyName?.charAt(0)}
-                        </div>
-                        <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-emerald-500 border-2 border-white rounded-full"></div>
-                      </div>
-                      <div className="flex flex-col">
-                        <span className="font-black text-slate-800 text-lg leading-tight tracking-tight">{row.facultyName}</span>
-                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">ID: {row.facultyCode}</span>
-                      </div>
-                    </div>
-                  )}
-                />
-                <Column 
-                  header="CONTACT" 
-                  body={(row) => (
-                    <div className="flex flex-col gap-1">
-                      <div className="flex items-center gap-2 text-xs font-bold text-slate-600">
-                        <i className="pi pi-envelope text-[10px] text-[#701515]"></i>
-                        {row.facultyEmail}
-                      </div>
-                      <div className="flex items-center gap-2 text-[10px] font-black text-slate-400 tracking-wider">
-                        <i className="pi pi-phone text-[8px] text-amber-500"></i>
-                        {row.facultyPhone}
-                      </div>
-                    </div>
-                  )}
-                />
-                <Column 
-                  header="PERFORMANCE" 
-                  body={(row) => (
-                    <div className="flex flex-col items-end gap-2">
-                      <div className="flex items-center gap-2 bg-amber-50 px-3 py-1.5 rounded-xl border border-amber-100">
-                        <i className="pi pi-star-fill text-amber-500 text-xs"></i>
-                        <span className="font-black text-slate-800 text-sm">{(row.averageRating || 0).toFixed(2)}</span>
-                      </div>
-                      <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">{row.totalResponses || 0} RESPONSES</span>
-                    </div>
-                  )}
-                  style={{ width: '150px' }}
-                />
+                <Column field="totalResponses" header="Responses" className="text-center font-bold text-slate-500" />
                 <Column
-                  header="AFFILIATIONS"
-                  className="px-6"
-                  body={(row) => (
-                    <div className="flex flex-wrap gap-1.5 max-w-[250px]">
-                      {row.departments?.map((d, i) => (
-                        <span key={i} className="text-[9px] font-black bg-slate-100 text-slate-500 px-2 py-1 rounded-md uppercase tracking-tighter">
-                          {d.departmentName}
-                        </span>
-                      ))}
-                    </div>
-                  )}
+                  header="Departments"
+                  body={(row) => row.departments?.map(d => d.departmentName).join(', ')}
+                  className="text-xs font-semibold text-slate-500"
                 />
-                <Column 
-                  header="ACTIONS" 
-                  body={actionTemplate} 
-                  style={{ width: '120px' }}
-                  className="px-6"
-                />
+                <Column header="Actions" body={actionTemplate} />
               </DataTable>
             </div>
           </div>
@@ -401,7 +349,6 @@ const FacultyPage = () => {
       </motion.div>
     </div>
   );
- );
 };
 
 export default FacultyPage;
