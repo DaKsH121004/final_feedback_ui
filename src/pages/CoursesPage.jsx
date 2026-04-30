@@ -7,18 +7,32 @@ import { Column } from 'primereact/column';
 import { Dropdown } from 'primereact/dropdown';
 import { Dialog } from 'primereact/dialog';
 import { Message } from 'primereact/message';
-import { useGetCoursesQuery, useAddCourseMutation, useGetFacultyQuery, useBulkUploadCoursesMutation } from '../services/api';
+import { 
+  useGetCoursesQuery, 
+  useAddCourseMutation, 
+  useUpdateCourseMutation, 
+  useDeleteCourseMutation,
+  useGetDepartmentsQuery,
+  useBulkUploadCoursesMutation 
+} from '../services/api';
 import * as XLSX from 'xlsx';
 import { motion } from 'motion/react';
-import { MultiSelect } from 'primereact/multiselect';
 
 const CoursesPage = () => {
   const [courseName, setCourseName] = useState('');
-  const [selectedFaculty, setSelectedFaculty] = useState([]);
-  const { data: courses, isLoading } = useGetCoursesQuery();
-  const { data: faculty } = useGetFacultyQuery();
-  const [addCourse] = useAddCourseMutation();
+  const [selectedDepartment, setSelectedDepartment] = useState(null);
+  const [editingId, setEditingId] = useState(null);
+  const [globalFilter, setGlobalFilter] = useState('');
   const [submitted, setSubmitted] = useState(false);
+
+  const { data: courses, isLoading, refetch } = useGetCoursesQuery();
+  const { data: departmentsResponse } = useGetDepartmentsQuery();
+  const departments = departmentsResponse?.departments || [];
+
+  const [addCourse] = useAddCourseMutation();
+  const [updateCourse] = useUpdateCourseMutation();
+  const [deleteCourse] = useDeleteCourseMutation();
+  const [bulkUploadCourses] = useBulkUploadCoursesMutation();
 
   // Bulk Upload States
   const [showBulkUpload, setShowBulkUpload] = useState(false);
@@ -27,8 +41,6 @@ const CoursesPage = () => {
   const [selectedFile, setSelectedFile] = useState(null);
   const [bulkError, setBulkError] = useState(null);
   const [bulkSuccess, setBulkSuccess] = useState(null);
-
-  const [bulkUploadCourses] = useBulkUploadCoursesMutation();
 
   const handleFileUpload = (e) => {
     const file = e.target.files[0];
@@ -43,28 +55,22 @@ const CoursesPage = () => {
       const ws = wb.Sheets[wsname];
       const data = XLSX.utils.sheet_to_json(ws);
       
-      console.log("Parsed Excel Data:", data);
-
       const previewData = data.map((row, index) => {
-        // Find a key that looks like "Course Name"
         const key = Object.keys(row).find(k => k.toLowerCase().trim() === 'course name') || 'Course Name';
         return {
           id: index,
           courseName: row[key] || row['course name'] || row['Course Name'] || '',
         };
-      }).filter(item => item.courseName); // Only show rows that have a course name
+      }).filter(item => item.courseName);
 
       setExcelData(previewData);
     };
     reader.readAsBinaryString(file);
-    
     e.target.value = null;
   };
 
   const downloadTemplate = () => {
-    const ws = XLSX.utils.json_to_sheet([{
-      "Course Name": "",
-    }]);
+    const ws = XLSX.utils.json_to_sheet([{"Course Name": ""}]);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Template");
     XLSX.writeFile(wb, "bulk_course_template.xlsx");
@@ -72,7 +78,6 @@ const CoursesPage = () => {
 
   const handleBulkSubmit = async () => {
     if (!selectedFile) return;
-
     const formData = new FormData();
     formData.append('file', selectedFile);
 
@@ -84,16 +89,12 @@ const CoursesPage = () => {
       setBulkSuccess(response.message || "Courses uploaded successfully!");
       setExcelData([]);
       setSelectedFile(null);
-      if (!response.message?.includes("Skipped")) {
-        setTimeout(() => {
-          setShowBulkUpload(false);
-          setBulkSuccess(null);
-        }, 5000);
-      }
+      setTimeout(() => {
+        setShowBulkUpload(false);
+        setBulkSuccess(null);
+      }, 5000);
     } catch (error) {
-      console.error("Bulk upload failed:", error);
-      const errorMsg = error?.data?.message || "Bulk upload failed. Please check the file format.";
-      setBulkError(errorMsg);
+      setBulkError(error?.data?.message || "Bulk upload failed.");
     } finally {
       setIsUploading(false);
     }
@@ -101,24 +102,60 @@ const CoursesPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    if (!courseName.trim() || !selectedFaculty) return;
+    if (!courseName.trim()) return;
 
     try {
-      await addCourse({
+      const payload = { 
         courseName,
-      }).unwrap();
+        departmentId: selectedDepartment?.id 
+      };
 
-      setCourseName('');
-      setSelectedFaculty([]);
+      if (editingId) {
+        await updateCourse({ id: editingId, ...payload }).unwrap();
+      } else {
+        await addCourse(payload).unwrap();
+      }
 
+      resetForm();
       setSubmitted(true);
       setTimeout(() => setSubmitted(false), 3000);
-
+      refetch();
     } catch (err) {
-      console.error('Failed to add course:', err);
+      console.error('Failed to save course:', err);
     }
   };
+
+  const resetForm = () => {
+    setCourseName('');
+    setSelectedDepartment(null);
+    setEditingId(null);
+  };
+
+  const handleEdit = (course) => {
+    setEditingId(course.id);
+    setCourseName(course.courseName);
+    const dept = departments.find(d => d.id === course.department?.id || d.departmentName === course.departmentName);
+    setSelectedDepartment(dept || null);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleDelete = async (id) => {
+    if (window.confirm('Are you sure you want to delete this course?')) {
+      try {
+        await deleteCourse(id).unwrap();
+        refetch();
+      } catch (err) {
+        console.error('Failed to delete course:', err);
+      }
+    }
+  };
+
+  const actionTemplate = (rowData) => (
+    <div className="flex gap-2">
+      <Button icon="pi pi-pencil" className="p-button-rounded p-button-text p-button-warning" onClick={() => handleEdit(rowData)} tooltip="Edit" />
+      <Button icon="pi pi-trash" className="p-button-rounded p-button-text p-button-danger" onClick={() => handleDelete(rowData.id)} tooltip="Delete" />
+    </div>
+  );
 
   const downloadExcel = () => {
     const dataToExport = courses?.courses || [];
@@ -128,72 +165,113 @@ const CoursesPage = () => {
     XLSX.writeFile(workbook, "Courses_List.xlsx");
   };
 
-  return (
-    <div className="max-w-6xl mx-auto p-4 md:p-8 space-y-12">
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-        {/* Main Card: Add Course */}
-        <Card className="shadow-2xl rounded-[2.5rem] border-none overflow-hidden mb-12 bg-white/80 backdrop-blur-sm relative">
-           <div className="absolute top-0 right-0 p-12 opacity-5 pointer-events-none">
-             <i className="pi pi-book text-9xl text-white" />
-           </div>
+  const renderHeader = () => (
+    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 mb-8">
+      <div>
+        <div className="flex items-center gap-3 mb-2">
+          <div className="w-1.5 h-6 bg-[#701515] rounded-full"></div>
+          <h2 className="text-3xl font-serif font-black text-slate-900 tracking-tight">Curriculum Registry</h2>
+        </div>
+        <p className="text-sm font-bold text-slate-400 uppercase tracking-widest ml-4">
+          Inventorying {courses?.courses?.length || 0} Professional Courses
+        </p>
+      </div>
+      
+      <div className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto">
+        <div className="relative w-full sm:w-80 group">
+          <i className="pi pi-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-[#701515] transition-colors z-10"></i>
+          <InputText
+            value={globalFilter}
+            onChange={(e) => setGlobalFilter(e.target.value)}
+            placeholder="Search Courses..."
+            className="w-full pr-4 py-3 rounded-2xl border-2 border-slate-200 bg-slate-50 focus:border-[#701515] focus:ring-4 focus:ring-[#701515]/10 transition-all font-bold text-slate-700"
+            style={{ paddingLeft: '3rem' }}
+          />
+        </div>
+        <Button
+          label="Export (.xlsx)"
+          icon="pi pi-file-excel"
+          className="p-button-text p-button-secondary font-black text-[10px] uppercase tracking-widest border-2 border-slate-100 rounded-2xl px-8 h-14 hover:bg-slate-50 transition-all w-full sm:w-auto"
+          onClick={downloadExcel}
+          disabled={!courses?.courses?.length}
+        />
+      </div>
+    </div>
+  );
 
+  return (
+    <div className="max-w-7xl mx-auto p-4 md:p-8 space-y-12">
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
+        {/* Registration Card */}
+        <Card className="shadow-2xl rounded-[2.5rem] border-none overflow-hidden mb-12 bg-white relative">
+          <div className="absolute top-0 right-0 p-12 opacity-5 pointer-events-none">
+            <i className="pi pi-book text-9xl text-white" />
+          </div>
+          
           <div className="bg-gradient-to-br from-[#701515] via-[#4a0d0d] to-black p-10 md:p-14 relative overflow-hidden">
             <div className="absolute top-0 right-0 w-96 h-96 bg-amber-500/10 rounded-full -mr-32 -mt-32 blur-[100px]" />
-            
             <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
               <div className="max-w-2xl">
                 <div className="flex items-center gap-3 mb-4">
-                  <span className="bg-amber-500/20 text-amber-400 text-[10px] font-black px-3 py-1 rounded-lg uppercase tracking-[0.2em] border border-amber-500/20 backdrop-blur-md">Curriculum Management</span>
+                  <span className="bg-amber-500/20 text-amber-400 text-[10px] font-black px-3 py-1 rounded-lg uppercase tracking-[0.2em] border border-amber-500/20 backdrop-blur-md">Curriculum Administration</span>
                 </div>
                 <h1 className="text-4xl md:text-5xl font-serif font-black text-white mb-4 tracking-tighter">
-                  Manage Courses
+                  {editingId ? 'Modify Course Profile' : 'Register New Course'}
                 </h1>
-                <p className="text-red-100/70 text-lg font-medium max-w-2xl leading-relaxed">
-                  Easily create, organize, and monitor your academic courses from one central dashboard.
+                <p className="text-red-100/70 text-lg font-medium leading-relaxed">
+                  Onboard academic courses and assign departmental categories for organized curriculum tracking.
                 </p>
               </div>
-              
-              <div className="shrink-0">
-                <Button
-                  type="button"
-                  label="Bulk Upload (.xlsx)"
-                  icon="pi pi-upload"
-                  className="p-button-text text-white border-2 border-white/20 hover:border-amber-500/50 hover:bg-white/5 transition-all duration-300 rounded-2xl font-black text-[10px] uppercase tracking-widest px-8 h-14"
-                  onClick={() => setShowBulkUpload(true)}
-                />
-              </div>
+              <Button
+                type="button"
+                label="Bulk Upload"
+                icon="pi pi-upload"
+                className="p-button-text text-white border-2 border-white/20 hover:border-amber-500/50 hover:bg-white/5 rounded-2xl font-black text-[10px] uppercase tracking-widest px-8 h-14"
+                onClick={() => setShowBulkUpload(true)}
+              />
             </div>
           </div>
 
           <div className="p-8 md:p-12">
             <form onSubmit={handleSubmit} className="space-y-10">
               {submitted && (
-                <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}>
-                  <Message severity="success" text="New course successfully integrated into the system." className="w-full rounded-2xl border-none shadow-lg py-4 bg-emerald-50 text-emerald-700 font-bold" />
-                </motion.div>
+                <Message severity="success" text={editingId ? "Course profile updated successfully." : "New course successfully registered."} className="w-full rounded-2xl border-none shadow-lg py-4 bg-emerald-50 text-emerald-700 font-bold" />
               )}
 
-              <div className="grid grid-cols-1 gap-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
                 <div className="flex flex-col gap-3">
                   <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Course Identification Name</label>
-                  <div className="relative group">
-                    <i className="pi pi-pencil absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-[#701515] transition-colors"></i>
-                    <InputText
-                      value={courseName}
-                      onChange={(e) => setCourseName(e.target.value)}
-                      placeholder="e.g. Advanced Data Structures & Algorithms"
-                      className="w-full rounded-2xl border-slate-100 bg-slate-50/50 p-5 pl-14 focus:ring-8 focus:ring-[#701515]/5 transition-all text-slate-700 font-bold"
-                      required
-                    />
-                  </div>
+                  <InputText
+                    value={courseName}
+                    onChange={(e) => setCourseName(e.target.value)}
+                    placeholder="e.g. Advanced Machine Learning"
+                    className="w-full rounded-2xl border-slate-100 bg-slate-50/50 p-5 focus:ring-8 focus:ring-[#701515]/5 transition-all font-bold text-slate-700"
+                    required
+                  />
+                </div>
+                
+                <div className="flex flex-col gap-3">
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Academic Department</label>
+                  <Dropdown
+                    value={selectedDepartment}
+                    options={departments}
+                    optionLabel="departmentName"
+                    onChange={(e) => setSelectedDepartment(e.value)}
+                    placeholder="Assign to Department"
+                    className="w-full rounded-2xl border-slate-100 bg-slate-50/50 min-h-[64px] flex items-center px-2"
+                    filter
+                  />
                 </div>
               </div>
 
-              <div className="flex justify-end pt-4 border-t border-slate-100">
+              <div className="flex justify-end items-center gap-6 pt-6 border-t border-slate-100">
+                {editingId && (
+                  <Button label="Discard Changes" icon="pi pi-times" className="p-button-text p-button-secondary rounded-2xl font-black text-[10px] uppercase tracking-widest px-8 h-14" onClick={resetForm} />
+                )}
                 <Button
-                  label="Add New Course"
-                  icon="pi pi-plus-circle"
-                  className="rounded-2xl font-black text-[10px] uppercase tracking-widest px-12 h-14 shadow-2xl shadow-red-900/20 border-none transition-all duration-300 hover:scale-105 active:scale-95"
+                  label={editingId ? "Update Course" : "Register Course"}
+                  icon={editingId ? "pi pi-check-circle" : "pi pi-plus-circle"}
+                  className="rounded-2xl font-black text-[10px] uppercase tracking-widest px-12 h-14 shadow-2xl border-none transition-all duration-300 hover:scale-105"
                   style={{ background: 'linear-gradient(135deg, #701515 0%, #4a0d0d 100%)', color: '#fff' }}
                   type="submit"
                 />
@@ -202,159 +280,76 @@ const CoursesPage = () => {
           </div>
         </Card>
 
-        {/* List Card: Existing Courses */}
-        <Card className="shadow-2xl rounded-[2.5rem] border-none overflow-hidden bg-white/80 backdrop-blur-sm">
+        {/* List Card */}
+        <Card className="shadow-2xl rounded-[2.5rem] border-none overflow-hidden bg-white relative">
           <div className="p-8 md:p-12">
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 mb-12">
-              <div>
-                <div className="flex items-center gap-3 mb-2">
-                  <div className="w-1.5 h-6 bg-[#701515] rounded-full"></div>
-                  <h2 className="text-3xl font-serif font-black text-slate-900 tracking-tight">Active Curriculum</h2>
-                </div>
-                <p className="text-sm font-bold text-slate-400 uppercase tracking-widest ml-4">Inventorying {courses?.courses?.length || 0} unique courses</p>
-              </div>
-              <Button
-                label="Export Registry (.xlsx)"
-                icon="pi pi-file-excel"
-                className="p-button-text p-button-secondary font-black text-[10px] uppercase tracking-widest border-2 border-slate-100 rounded-2xl px-8 h-12 hover:bg-slate-50 transition-all"
-                onClick={downloadExcel}
-                disabled={!courses?.courses?.length}
-              />
-            </div>
-
+            {renderHeader()}
             <div className="rounded-[2.5rem] border border-slate-100 overflow-hidden shadow-sm">
               <DataTable
                 value={courses?.courses}
                 loading={isLoading}
                 className="p-datatable-sm custom-modern-table"
-                paginator
-                rows={10}
-                emptyMessage="No academic records found."
+                paginator rows={10}
+                globalFilter={globalFilter}
+                emptyMessage="No matching academic records found."
                 responsiveLayout="stack"
                 rowClassName={() => 'hover:bg-slate-50/50 transition-colors duration-200'}
               >
                 <Column field="id" header="ID" className="font-bold text-slate-400" />
-                <Column field="courseName" header="Course Name" className="font-bold text-slate-800" />
+                <Column field="courseName" header="Course Title" className="font-bold text-slate-800" sortable />
+                <Column 
+                  header="Department" 
+                  body={(row) => row.department?.departmentName || row.departmentName || 'Not Assigned'} 
+                  className="font-semibold text-slate-500" 
+                  sortable
+                />
+                <Column header="Actions" body={actionTemplate} />
               </DataTable>
             </div>
           </div>
         </Card>
 
-        {/* BULK UPLOAD DIALOG */}
-        <Dialog
-          header={
-            <div className="flex items-center gap-4 py-2">
-              <div className="bg-red-50 p-3 rounded-2xl">
-                <i className="pi pi-upload text-[#701515] text-xl"></i>
-              </div>
-              <div className="flex flex-col">
-                <span className="text-2xl font-serif font-black text-slate-900 tracking-tight leading-none">Bulk Import</span>
-                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">Accelerated Course Setup</span>
-              </div>
-            </div>
-          }
-          visible={showBulkUpload}
-          style={{ width: '90vw', maxWidth: '700px' }}
-          modal
-          onHide={() => {
-            setShowBulkUpload(false);
-            setExcelData([]);
-            setBulkError(null);
-          }}
+        {/* Bulk Upload Dialog */}
+        <Dialog 
+          visible={showBulkUpload} 
+          onHide={() => setShowBulkUpload(false)}
+          header="Accelerated Course Import"
+          style={{ width: '90vw', maxWidth: '600px' }}
           className="rounded-[2.5rem] overflow-hidden"
           maskClassName="backdrop-blur-md bg-[#701515]/10"
         >
-          <div className="flex flex-col gap-8 pt-4 pb-2">
-            {bulkError && (
-              <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
-                <Message severity="error" text={bulkError} className="w-full rounded-2xl border-none shadow-md" />
-              </motion.div>
-            )}
+          <div className="flex flex-col gap-6 pt-4">
+            {bulkError && <Message severity="error" text={bulkError} className="w-full rounded-2xl" />}
+            {bulkSuccess && <Message severity="success" text={bulkSuccess} className="w-full rounded-2xl" />}
             
-            {bulkSuccess && (
-              <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
-                <Message 
-                  severity={bulkSuccess.includes("Skipped") ? "warn" : "success"} 
-                  content={(
-                    <div className="flex flex-col gap-2 py-2 px-4">
-                      <span className="font-black text-sm uppercase tracking-wider">Operation Status:</span>
-                      <span className="text-base font-medium opacity-90">{bulkSuccess}</span>
-                    </div>
-                  )} 
-                  className="w-full rounded-2xl border-none shadow-md" 
-                />
-              </motion.div>
-            )}
-
-            <div 
-              className="group border-2 border-dashed border-slate-100 rounded-[2rem] p-12 flex flex-col items-center justify-center gap-6 bg-slate-50/50 hover:bg-red-50/30 hover:border-[#701515]/30 transition-all duration-500 cursor-pointer relative overflow-hidden"
-              onClick={() => document.getElementById('excel-upload').click()}
-            >
-              <div className="w-20 h-20 bg-white rounded-3xl shadow-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-500">
-                <i className="pi pi-file-excel text-3xl text-[#701515]"></i>
+            <div className="border-2 border-dashed border-slate-100 rounded-[2rem] p-10 flex flex-col items-center gap-4 bg-slate-50/50" onClick={() => document.getElementById('bulk-course-upload').click()}>
+              <i className="pi pi-file-excel text-4xl text-[#701515]" />
+              <div className="text-center">
+                <p className="font-black text-slate-800">Drop curriculum data here</p>
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Supports .xlsx and .xls</p>
               </div>
-              
-              <div className="text-center relative z-10">
-                <p className="text-xl font-black text-slate-800 mb-2 tracking-tight">Drop your Excel sheet here</p>
-                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">or click to browse from storage</p>
-              </div>
-
-              <input
-                type="file"
-                accept=".xlsx, .xls"
-                id="excel-upload"
-                className="hidden"
-                onChange={handleFileUpload}
-              />
-            </div>
-
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-2">
-              <div className="flex items-center gap-3 text-slate-500 text-[10px] font-black uppercase tracking-widest">
-                <i className="pi pi-info-circle text-[#701515]"></i>
-                <span>Mandatory header: Course Name</span>
-              </div>
-              <Button
-                type="button"
-                label="Download Protocol Template"
-                icon="pi pi-download"
-                className="p-button-text p-button-secondary font-black text-[10px] uppercase tracking-widest h-12"
-                onClick={downloadTemplate}
-              />
+              <input type="file" id="bulk-course-upload" className="hidden" accept=".xlsx, .xls" onChange={handleFileUpload} />
             </div>
 
             {excelData.length > 0 && (
-              <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} className="mt-4">
-                <div className="flex items-center justify-between mb-4 px-2">
-                  <span className="font-black text-slate-700 flex items-center gap-2 text-[10px] uppercase tracking-widest">
-                    <i className="pi pi-eye text-amber-500"></i>
-                    Data Preview ({excelData.length} records)
-                  </span>
-                </div>
-                <div className="border border-slate-100 rounded-2xl overflow-hidden shadow-2xl">
-                  <DataTable value={excelData} paginator rows={3} responsiveLayout="scroll" className="p-datatable-sm">
-                    <Column field="courseName" header="COURSE NAME" className="font-bold text-slate-600 p-4" />
+              <div className="px-2">
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Data Preview ({excelData.length} records)</p>
+                <div className="border border-slate-100 rounded-2xl overflow-hidden">
+                  <DataTable value={excelData} rows={3} className="p-datatable-sm">
+                    <Column field="courseName" header="COURSE NAME" />
                   </DataTable>
                 </div>
-              </motion.div>
+              </div>
             )}
 
-            <div className="flex justify-end items-center gap-4 mt-6 pt-4 border-t border-slate-50">
-              <Button
-                type="button"
-                label="Abort"
-                className="p-button-text p-button-secondary font-black text-[10px] uppercase tracking-widest h-14 px-8"
-                onClick={() => {
-                  setShowBulkUpload(false);
-                  setExcelData([]);
-                }}
-              />
-              <Button
-                type="button"
-                label="Finalize Upload"
-                icon="pi pi-check-circle"
-                className="rounded-2xl font-black text-[10px] uppercase tracking-widest px-10 h-14 shadow-2xl shadow-red-900/20 border-none"
-                style={{ background: 'linear-gradient(135deg, #701515 0%, #4a0d0d 100%)', color: '#fff' }}
-                disabled={excelData.length === 0 || isUploading}
+            <div className="flex justify-between items-center pt-4 border-t border-slate-50">
+              <Button label="Download Template" icon="pi pi-download" className="p-button-text font-black text-[10px] uppercase" onClick={downloadTemplate} />
+              <Button 
+                label="Commit Upload" 
+                icon="pi pi-check-circle" 
+                className="rounded-2xl font-black text-[10px] uppercase tracking-widest px-8 h-12" 
+                style={{ background: '#701515', color: '#fff' }}
+                disabled={!selectedFile || isUploading}
                 loading={isUploading}
                 onClick={handleBulkSubmit}
               />

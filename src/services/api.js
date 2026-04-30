@@ -131,6 +131,14 @@ export const api = createApi({
       }),
       invalidatesTags: ['Courses'],
     }),
+    updateCourse: builder.mutation({
+      query: ({ id, ...data }) => ({ url: `/course/${id}`, method: 'PUT', data }),
+      invalidatesTags: ['Courses'],
+    }),
+    deleteCourse: builder.mutation({
+      query: (id) => ({ url: `/course/${id}`, method: 'DELETE' }),
+      invalidatesTags: ['Courses'],
+    }),
     getDashboard: builder.query({
       query: () => ({ url: "/dashboard", method: "GET" }),
     }),
@@ -198,6 +206,8 @@ export const {
   useDeleteFacultyMutation,
   useGetCoursesQuery,
   useAddCourseMutation,
+  useUpdateCourseMutation,
+  useDeleteCourseMutation,
   useGetDashboardQuery,
   useValidateFormQuery,
   useGetAssignmentsQuery,
