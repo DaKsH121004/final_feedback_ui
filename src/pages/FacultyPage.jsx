@@ -12,7 +12,9 @@ import {
   useGetDepartmentsQuery,
   useUpdateFacultyMutation,
   useDeleteFacultyMutation,
+  useGetAssignmentsQuery,
 } from "../services/api";
+import { Dialog } from "primereact/dialog";
 
 import * as XLSX from "xlsx";
 import { motion } from "motion/react";
@@ -30,6 +32,12 @@ const FacultyPage = () => {
   const [deleteFaculty] = useDeleteFacultyMutation();
   const [submitted, setSubmitted] = useState(false);
   const [editingId, setEditingId] = useState(null);
+  const [selectedFaculty, setSelectedFaculty] = useState(null);
+  
+  const { data: assignmentsData } = useGetAssignmentsQuery(undefined, { skip: !selectedFaculty });
+  const assignmentsList = Array.isArray(assignmentsData) ? assignmentsData : (assignmentsData?.assignments || assignmentsData?.data || []);
+  const facultyAssignments = assignmentsList.filter(a => a.facultyName === selectedFaculty?.facultyName) || [];
+  const courses = [...new Set(facultyAssignments.map(a => a.courseName).filter(Boolean))];
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -351,7 +359,20 @@ const FacultyPage = () => {
                 rowClassName={() => 'hover:bg-slate-50/50 transition-colors duration-200'}
               >
                 <Column field="id" header="ID" className="font-bold text-slate-400" />
-                <Column field="facultyName" header="Faculty Name" className="font-bold text-slate-800" sortable />
+                <Column 
+                  field="facultyName" 
+                  header="Faculty Name" 
+                  sortable 
+                  body={(rowData) => (
+                    <div 
+                      className="font-bold text-slate-800 cursor-pointer hover:text-[#701515] flex items-center gap-2 group transition-colors"
+                      onClick={() => setSelectedFaculty(rowData)}
+                    >
+                      {rowData.facultyName}
+                      <i className="pi pi-external-link text-[10px] opacity-0 group-hover:opacity-100 transition-opacity"></i>
+                    </div>
+                  )} 
+                />
                 <Column field="facultyCode" header="Code" className="font-bold text-[#701515]" sortable />
                 <Column field="facultyEmail" header="Email" className="font-semibold text-slate-600" />
                 <Column field="facultyPhone" header="Phone" className="font-semibold text-slate-600" />
@@ -374,6 +395,86 @@ const FacultyPage = () => {
           </div>
         </Card>
       </motion.div>
+
+      {/* ── Faculty Profile Dialog ── */}
+      <Dialog
+        header={
+          <div className="flex items-center gap-4 py-2">
+            <div className="w-14 h-14 bg-gradient-to-br from-[#c5a028] to-[#9a7b1b] rounded-2xl flex items-center justify-center shadow-lg text-white font-black text-2xl">
+               {selectedFaculty?.facultyName?.charAt(0) || 'F'}
+            </div>
+            <div className="flex flex-col">
+              <span className="text-2xl font-black text-slate-900 leading-none">{selectedFaculty?.facultyName}</span>
+              <span className="text-xs font-bold text-[#c5a028] uppercase tracking-widest mt-1">MRU Elite Faculty • {selectedFaculty?.facultyCode}</span>
+            </div>
+          </div>
+        }
+        visible={!!selectedFaculty}
+        onHide={() => setSelectedFaculty(null)}
+        className="rounded-[2.5rem] w-full max-w-2xl overflow-hidden shadow-2xl"
+        maskClassName="backdrop-blur-md bg-slate-900/40"
+      >
+        <div className="p-2 space-y-6">
+           <div className="grid grid-cols-2 gap-4">
+              <div className="bg-slate-50 rounded-3xl p-6 border border-slate-100 flex flex-col items-center justify-center text-center">
+                 <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Average Rating</span>
+                 <div className="flex items-end gap-2">
+                    <span className="text-5xl font-black text-slate-900 tracking-tighter">{(selectedFaculty?.averageRating || 0).toFixed(2)}</span>
+                    <i className="pi pi-star-fill text-2xl text-[#c5a028] mb-1" />
+                 </div>
+              </div>
+              <div className="bg-slate-50 rounded-3xl p-6 border border-slate-100 flex flex-col items-center justify-center text-center">
+                 <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Feedback Volume</span>
+                 <div className="flex items-end gap-2">
+                    <span className="text-5xl font-black text-slate-900 tracking-tighter">{selectedFaculty?.totalResponses || 0}</span>
+                    <i className="pi pi-comments text-2xl text-slate-300 mb-1" />
+                 </div>
+              </div>
+           </div>
+
+           <div className="space-y-6 pt-4 border-t border-slate-100">
+              <div>
+                 <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 flex items-center gap-2">
+                    <i className="pi pi-envelope" /> Contact Info
+                 </h4>
+                 <div className="flex flex-col gap-2 text-sm font-bold text-slate-700">
+                    <div className="flex items-center gap-2 bg-slate-50 p-3 rounded-xl border border-slate-100">
+                      <i className="pi pi-at text-slate-400"></i> {selectedFaculty?.facultyEmail || 'No email provided'}
+                    </div>
+                    <div className="flex items-center gap-2 bg-slate-50 p-3 rounded-xl border border-slate-100">
+                      <i className="pi pi-phone text-slate-400"></i> {selectedFaculty?.facultyPhone || 'No phone provided'}
+                    </div>
+                 </div>
+              </div>
+
+              <div>
+                 <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 flex items-center gap-2">
+                    <i className="pi pi-building" /> Primary Department(s)
+                 </h4>
+                 <div className="flex flex-wrap gap-2">
+                    {selectedFaculty?.departments?.length > 0 ? selectedFaculty.departments.map((d, i) => (
+                       <span key={i} className="px-4 py-2 bg-emerald-50 text-emerald-700 rounded-xl text-sm font-black border border-emerald-100">{d.departmentName}</span>
+                    )) : (
+                       <span className="text-slate-500 italic text-sm font-medium bg-slate-50 px-4 py-2 rounded-xl">Not assigned</span>
+                    )}
+                 </div>
+              </div>
+              
+              <div>
+                 <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 flex items-center gap-2">
+                    <i className="pi pi-book" /> Assigned Subjects/Courses
+                 </h4>
+                 <div className="flex flex-wrap gap-2">
+                    {courses.length > 0 ? courses.map((c, i) => (
+                       <span key={i} className="px-4 py-2 bg-indigo-50 text-indigo-700 rounded-xl text-sm font-black border border-indigo-100">{c}</span>
+                    )) : (
+                       <span className="text-slate-500 italic text-sm font-medium bg-slate-50 px-4 py-2 rounded-xl">No courses currently assigned</span>
+                    )}
+                 </div>
+              </div>
+           </div>
+        </div>
+      </Dialog>
     </div>
   );
 };

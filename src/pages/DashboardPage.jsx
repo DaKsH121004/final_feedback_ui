@@ -248,7 +248,7 @@ import { Avatar } from "primereact/avatar";
 import { InputSwitch } from "primereact/inputswitch";
 import { motion } from "motion/react";
 import { Link, useNavigate } from "react-router-dom";
-import { useGetDashboardQuery, useGetFormStatusQuery, useGetAllFeedbacksQuery } from "../services/api";
+import { useGetDashboardQuery, useGetFormStatusQuery, useGetFacultyQuery, useGetAssignmentsQuery } from "../services/api";
 import FormToggle from "../components/FormToggle";
 import { Dialog } from "primereact/dialog";
 import { DataTable } from "primereact/datatable";
@@ -264,8 +264,14 @@ import {
   LineChart,
   Line,
   Legend,
-  RadialBarChart,
-  RadialBar,
+  AreaChart,
+  Area,
+  LabelList,
+  RadarChart,
+  Radar,
+  PolarGrid,
+  PolarAngleAxis,
+  PolarRadiusAxis,
 } from "recharts";
 
 // ── Custom Tooltip ──────────────────────────────────────────────────────────
@@ -369,6 +375,21 @@ const DashboardPage = () => {
   const { data: formStatus, isLoading: statusLoading } = useGetFormStatusQuery();
   const { data: dashboardData, isLoading } = useGetDashboardQuery();
   const [visible, setVisible] = useState(false);
+  const [selectedFaculty, setSelectedFaculty] = useState(null);
+  
+  const { data: faculties } = useGetFacultyQuery(undefined, { skip: !selectedFaculty });
+  const { data: assignmentsData } = useGetAssignmentsQuery(undefined, { skip: !selectedFaculty });
+  const assignmentsList = Array.isArray(assignmentsData) ? assignmentsData : (assignmentsData?.assignments || assignmentsData?.data || []);
+  
+  const facultiesList = Array.isArray(faculties) ? faculties : (faculties?.faculties || faculties?.data || []);
+  const fullFaculty = facultiesList.find(f => f.facultyName === selectedFaculty?.facultyName);
+  const facultyAssignments = assignmentsList.filter(a => a.facultyName === selectedFaculty?.facultyName) || [];
+  
+  const courses = [...new Set(facultyAssignments.map(a => a.courseName).filter(Boolean))];
+  const departments = [...new Set(facultyAssignments.map(a => a.departmentName).filter(Boolean))];
+
+  const bestFacultyPerDept = dashboardData?.departmentChampions || [];
+
   const navigate = useNavigate();
 
   const stats = [
@@ -489,7 +510,7 @@ const DashboardPage = () => {
               <Card className="shadow-sm rounded-[2.5rem] border-none p-4">
                 <SectionHeader title="Divisional Quality" subtitle="Departmental rating distribution" />
                 <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={departmentPerformance} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                  <BarChart data={departmentPerformance} margin={{ top: 20, right: 10, left: -20, bottom: 0 }}>
                     <defs>
                       <linearGradient id="mruMaroon" x1="0" y1="0" x2="0" y2="1">
                         <stop offset="0%" stopColor="#701515" stopOpacity={1} />
@@ -497,10 +518,12 @@ const DashboardPage = () => {
                       </linearGradient>
                     </defs>
                     <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
-                    <XAxis dataKey="label" tick={{ fontSize: 10, fontWeight: 800, fill: "#64748b" }} axisLine={false} tickLine={false} />
+                    <XAxis dataKey="label" tick={{ fontSize: 10, fontWeight: 800, fill: "#64748b" }} axisLine={false} tickLine={false} dy={10} />
                     <YAxis domain={[0, 5]} ticks={[0, 1, 2, 3, 4, 5]} tick={{ fontSize: 10, fontWeight: 700, fill: "#94a3b8" }} axisLine={false} tickLine={false} />
                     <Tooltip content={<CustomTooltip />} cursor={{ fill: "#f8fafc" }} />
-                    <Bar dataKey="value" fill="url(#mruMaroon)" radius={[10, 10, 0, 0]} barSize={32} />
+                    <Bar dataKey="value" fill="url(#mruMaroon)" radius={[12, 12, 12, 12]} barSize={48}>
+                      <LabelList dataKey="value" position="top" offset={10} style={{ fill: '#701515', fontWeight: 900, fontSize: 14 }} />
+                    </Bar>
                   </BarChart>
                 </ResponsiveContainer>
               </Card>
@@ -511,13 +534,21 @@ const DashboardPage = () => {
               <Card className="shadow-sm rounded-[2.5rem] border-none p-4">
                 <SectionHeader title="Academic Trajectory" subtitle="Longitudinal rating progression" />
                 <ResponsiveContainer width="100%" height={300}>
-                  <LineChart data={facultyTrend} margin={{ top: 10, right: 20, left: -20, bottom: 0 }}>
+                  <AreaChart data={facultyTrend} margin={{ top: 20, right: 20, left: -20, bottom: 0 }}>
+                    <defs>
+                      <linearGradient id="mruTrend" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#c5a028" stopOpacity={0.4} />
+                        <stop offset="95%" stopColor="#c5a028" stopOpacity={0} />
+                      </linearGradient>
+                    </defs>
                     <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
-                    <XAxis dataKey="label" tick={{ fontSize: 10, fontWeight: 800, fill: "#64748b" }} axisLine={false} tickLine={false} />
+                    <XAxis dataKey="label" tick={{ fontSize: 10, fontWeight: 800, fill: "#64748b" }} axisLine={false} tickLine={false} dy={10} />
                     <YAxis domain={[0, 5]} ticks={[0, 1, 2, 3, 4, 5]} tick={{ fontSize: 10, fontWeight: 700, fill: "#94a3b8" }} axisLine={false} tickLine={false} />
                     <Tooltip content={<CustomTooltip />} />
-                    <Line type="monotone" dataKey="value" stroke="#c5a028" strokeWidth={4} dot={{ r: 6, fill: "#701515", strokeWidth: 3, stroke: "#fff" }} activeDot={{ r: 8, strokeWidth: 0 }} />
-                  </LineChart>
+                    <Area type="monotone" dataKey="value" stroke="#c5a028" fillOpacity={1} fill="url(#mruTrend)" strokeWidth={5} dot={{ r: 8, fill: "#701515", strokeWidth: 4, stroke: "#fff" }} activeDot={{ r: 10, strokeWidth: 0, fill: "#c5a028" }}>
+                      <LabelList dataKey="value" position="top" offset={15} style={{ fill: '#c5a028', fontWeight: 900, fontSize: 14 }} />
+                    </Area>
+                  </AreaChart>
                 </ResponsiveContainer>
               </Card>
             </motion.div>
@@ -528,7 +559,7 @@ const DashboardPage = () => {
             <Card className="shadow-sm rounded-[2.5rem] border-none p-6">
               <SectionHeader title="Submission Velocity" subtitle="Response volume across divisions" />
               <ResponsiveContainer width="100%" height={250}>
-                <BarChart data={feedbackVolume} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                <BarChart data={feedbackVolume} margin={{ top: 20, right: 10, left: -20, bottom: 0 }}>
                   <defs>
                     <linearGradient id="mruGold" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="0%" stopColor="#c5a028" stopOpacity={1} />
@@ -536,12 +567,43 @@ const DashboardPage = () => {
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
-                  <XAxis dataKey="label" tick={{ fontSize: 10, fontWeight: 800, fill: "#64748b" }} axisLine={false} tickLine={false} />
+                  <XAxis dataKey="label" tick={{ fontSize: 10, fontWeight: 800, fill: "#64748b" }} axisLine={false} tickLine={false} dy={10} />
                   <YAxis tick={{ fontSize: 10, fontWeight: 700, fill: "#94a3b8" }} axisLine={false} tickLine={false} />
-                  <Tooltip content={<CustomTooltip />} />
-                  <Bar dataKey="value" fill="url(#mruGold)" radius={[10, 10, 0, 0]} barSize={60} />
+                  <Tooltip content={<CustomTooltip />} cursor={{ fill: "#f8fafc" }} />
+                  <Bar dataKey="value" fill="url(#mruGold)" radius={[12, 12, 12, 12]} barSize={64}>
+                    <LabelList dataKey="value" position="top" offset={10} style={{ fill: '#c5a028', fontWeight: 900, fontSize: 14 }} />
+                  </Bar>
                 </BarChart>
               </ResponsiveContainer>
+            </Card>
+          </motion.div>
+
+          {/* Department Champions */}
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6 }}>
+            <Card className="shadow-sm rounded-[2.5rem] border-none p-6">
+              <SectionHeader title="Department Champions" subtitle="Highest rated faculty per division" />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                {bestFacultyPerDept.map((item, idx) => (
+                  <div key={idx} className="flex items-center gap-4 p-4 rounded-2xl border border-slate-100 bg-slate-50">
+                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#701515] to-[#4a0d0d] text-white font-black text-xl flex items-center justify-center shadow-inner">
+                      {item?.facultyName?.charAt(0) || 'F'}
+                    </div>
+                    <div className="flex-1 overflow-hidden">
+                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest truncate">{item.departmentName}</p>
+                      <p className="text-sm font-bold text-slate-800 truncate">{item.facultyName}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-lg font-black text-[#c5a028] flex items-center gap-1 justify-end">
+                        {(item?.averageRating || 0).toFixed(2)}
+                        <i className="pi pi-star-fill text-[10px]" />
+                      </p>
+                    </div>
+                  </div>
+                ))}
+                {bestFacultyPerDept.length === 0 && (
+                  <p className="text-sm font-medium text-slate-400 italic">No departmental assignments found.</p>
+                )}
+              </div>
             </Card>
           </motion.div>
         </div>
@@ -558,7 +620,9 @@ const DashboardPage = () => {
               
               <div className="space-y-6 mt-10">
                 {topFaculty.slice(0, 5).map((item, idx) => (
-                  <div key={idx} className="flex items-center justify-between p-5 bg-slate-50/50 rounded-2xl border border-slate-100 group hover:bg-white hover:shadow-xl hover:border-[#c5a028]/30 transition-all duration-300">
+                  <div key={idx} 
+                    onClick={() => setSelectedFaculty(item)}
+                    className="flex items-center justify-between p-5 bg-slate-50/50 rounded-2xl border border-slate-100 group hover:bg-white hover:shadow-xl hover:border-[#c5a028]/30 transition-all duration-300 cursor-pointer">
                     <div className="flex items-center gap-4">
                       <div className="relative">
                         <Avatar label={item?.facultyName?.charAt(0)} shape="circle" className="bg-white text-[#701515] font-black shadow-md w-12 h-12 border-2 border-white" />
@@ -590,6 +654,22 @@ const DashboardPage = () => {
             </Card>
           </motion.div>
           
+          {/* Top Faculty Radar */}
+          <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.7 }}>
+            <Card className="shadow-sm rounded-[2.5rem] border-none p-6 bg-white">
+              <SectionHeader title="Elite Profiling" subtitle="Top 5 Performance Distribution" />
+              <div className="flex justify-center -mt-4">
+                <RadarChart cx="50%" cy="50%" outerRadius="70%" width={300} height={250} data={topFacultyChart}>
+                  <PolarGrid stroke="#f1f5f9" />
+                  <PolarAngleAxis dataKey="name" tick={{ fill: '#64748b', fontSize: 10, fontWeight: 800 }} />
+                  <PolarRadiusAxis angle={30} domain={[0, 5]} tick={false} axisLine={false} />
+                  <Radar name="Rating" dataKey="rating" stroke="#c5a028" strokeWidth={3} fill="#c5a028" fillOpacity={0.4} />
+                  <Tooltip content={<CustomTooltip />} />
+                </RadarChart>
+              </div>
+            </Card>
+          </motion.div>
+
           <Card className="shadow-sm rounded-[2.5rem] border-none bg-gradient-to-br from-[#701515] to-[#4a0d0d] text-white p-8 overflow-hidden relative group">
             <div className="absolute -bottom-10 -right-10 w-48 h-48 bg-white/5 rounded-full blur-3xl group-hover:scale-150 transition-transform duration-1000" />
             <div className="relative z-10">
@@ -600,7 +680,7 @@ const DashboardPage = () => {
               <p className="text-red-100/70 text-sm font-medium leading-relaxed mb-8">
                 All data points are verified against institutional academic standards for Session 2026.
               </p>
-              <Button label="Generate Report" icon="pi pi-file-pdf" className="p-button-secondary w-full rounded-2xl font-black text-xs uppercase tracking-widest py-4 bg-white text-[#701515] border-none shadow-lg" />
+              <Button label="Generate Report" icon="pi pi-file-pdf" className="p-button-secondary w-full rounded-2xl font-black text-xs uppercase tracking-widest py-4 bg-white text-[#701515] hover:bg-slate-50 transition-all border-none shadow-lg" onClick={() => window.print()} />
             </div>
           </Card>
         </div>
@@ -637,6 +717,74 @@ const DashboardPage = () => {
                Security Protocols Active
             </div>
           </div>
+        </div>
+      </Dialog>
+
+      {/* ── Faculty Profile Dialog ── */}
+      <Dialog
+        header={
+          <div className="flex items-center gap-4 py-2">
+            <div className="w-14 h-14 bg-gradient-to-br from-[#c5a028] to-[#9a7b1b] rounded-2xl flex items-center justify-center shadow-lg text-white font-black text-2xl">
+               {selectedFaculty?.facultyName?.charAt(0)}
+            </div>
+            <div className="flex flex-col">
+              <span className="text-2xl font-black text-slate-900 leading-none">{selectedFaculty?.facultyName}</span>
+              <span className="text-xs font-bold text-[#c5a028] uppercase tracking-widest mt-1">MRU Elite Faculty</span>
+            </div>
+          </div>
+        }
+        visible={!!selectedFaculty}
+        onHide={() => setSelectedFaculty(null)}
+        className="rounded-[2.5rem] w-full max-w-2xl overflow-hidden shadow-2xl"
+        maskClassName="backdrop-blur-md bg-slate-900/40"
+      >
+        <div className="p-2 space-y-6">
+           <div className="grid grid-cols-2 gap-4">
+              <div className="bg-slate-50 rounded-3xl p-6 border border-slate-100 flex flex-col items-center justify-center text-center">
+                 <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Average Rating</span>
+                 <div className="flex items-end gap-2">
+                    <span className="text-5xl font-black text-slate-900 tracking-tighter">{(selectedFaculty?.averageRating || 0).toFixed(2)}</span>
+                    <i className="pi pi-star-fill text-2xl text-[#c5a028] mb-1" />
+                 </div>
+              </div>
+              <div className="bg-slate-50 rounded-3xl p-6 border border-slate-100 flex flex-col items-center justify-center text-center">
+                 <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Total Subject Assignments</span>
+                 <div className="flex items-end gap-2">
+                    <span className="text-5xl font-black text-slate-900 tracking-tighter">{courses.length}</span>
+                    <i className="pi pi-book text-2xl text-slate-300 mb-1" />
+                 </div>
+              </div>
+           </div>
+
+           <div className="space-y-6 pt-4 border-t border-slate-100">
+              <div>
+                 <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 flex items-center gap-2">
+                    <i className="pi pi-building" /> Primary Department(s)
+                 </h4>
+                 <div className="flex flex-wrap gap-2">
+                    {departments.length > 0 ? departments.map((d, i) => (
+                       <span key={i} className="px-4 py-2 bg-emerald-50 text-emerald-700 rounded-xl text-sm font-black border border-emerald-100">{d}</span>
+                    )) : fullFaculty?.departments?.length > 0 ? fullFaculty.departments.map((d, i) => (
+                       <span key={i} className="px-4 py-2 bg-emerald-50 text-emerald-700 rounded-xl text-sm font-black border border-emerald-100">{d.departmentName}</span>
+                    )) : (
+                       <span className="text-slate-500 italic text-sm font-medium bg-slate-50 px-4 py-2 rounded-xl">Not assigned</span>
+                    )}
+                 </div>
+              </div>
+              
+              <div>
+                 <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 flex items-center gap-2">
+                    <i className="pi pi-book" /> Assigned Subjects/Courses
+                 </h4>
+                 <div className="flex flex-wrap gap-2">
+                    {courses.length > 0 ? courses.map((c, i) => (
+                       <span key={i} className="px-4 py-2 bg-indigo-50 text-indigo-700 rounded-xl text-sm font-black border border-indigo-100">{c}</span>
+                    )) : (
+                       <span className="text-slate-500 italic text-sm font-medium bg-slate-50 px-4 py-2 rounded-xl">No courses currently assigned</span>
+                    )}
+                 </div>
+              </div>
+           </div>
         </div>
       </Dialog>
     </div>
