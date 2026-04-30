@@ -589,46 +589,11 @@ const CourseAssignPage = () => {
                 responsiveLayout="stack"
                 rowClassName={() => 'hover:bg-slate-50/50 transition-colors duration-200'}
               >
-                <Column 
-                  field="id" 
-                  header="REF" 
-                  className="font-black text-slate-400 px-6 py-6 text-xs" 
-                  style={{ width: '100px' }}
-                />
-                <Column 
-                  header="FACULTY EXPERT" 
-                  className="px-6 py-6"
-                  body={(rowData) => (
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-red-50 flex items-center justify-center text-[#701515]">
-                        <i className="pi pi-user text-xs"></i>
-                      </div>
-                      <span className="font-black text-slate-800 text-lg tracking-tight">{rowData.facultyName}</span>
-                    </div>
-                  )}
-                />
-                <Column 
-                  header="DEPARTMENT" 
-                  className="px-6 py-6"
-                  body={(row) => (
-                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{row.departmentName}</span>
-                  )}
-                />
-                <Column 
-                  header="COURSE" 
-                  className="px-6 py-6"
-                  body={(rowData) => (
-                    <div className="bg-amber-50 inline-block px-4 py-2 rounded-xl border border-amber-100">
-                      <span className="font-black text-amber-700 text-xs uppercase tracking-tight">{rowData.courseName}</span>
-                    </div>
-                  )}
-                />
-                <Column 
-                  header="ACTIONS" 
-                  className="px-6 py-6"
-                  body={actionTemplate}
-                  style={{ width: '120px' }}
-                />
+                <Column field="id" header="ID" className="font-bold text-slate-400" />
+                <Column field="facultyName" header="Faculty" className="font-bold text-slate-800" />
+                <Column field="departmentName" header="Department" className="font-semibold text-slate-500" />
+                <Column field="courseName" header="Course" className="font-bold text-[#701515]" />
+                <Column header="Actions" body={actionTemplate} />
               </DataTable>
             </div>
           </div>
