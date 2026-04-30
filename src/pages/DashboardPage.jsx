@@ -247,10 +247,12 @@ import { Button } from "primereact/button";
 import { Avatar } from "primereact/avatar";
 import { InputSwitch } from "primereact/inputswitch";
 import { motion } from "motion/react";
-import { Link } from "react-router-dom";
-import { useGetDashboardQuery, useGetFormStatusQuery } from "../services/api";
+import { Link, useNavigate } from "react-router-dom";
+import { useGetDashboardQuery, useGetFormStatusQuery, useGetAllFeedbacksQuery } from "../services/api";
 import FormToggle from "../components/FormToggle";
 import { Dialog } from "primereact/dialog";
+import { DataTable } from "primereact/datatable";
+import { Column } from "primereact/column";
 import {
   BarChart,
   Bar,
@@ -319,12 +321,14 @@ const StatCard = ({ stat, idx }) => {
     <motion.div
       initial={{ opacity: 0, y: 24 }}
       animate={{ opacity: 1, y: 0 }}
+      whileTap={{ scale: 0.95 }}
       transition={{ delay: idx * 0.1, type: "spring", stiffness: 120 }}
+      onClick={stat.onClick}
     >
-      <Card className="shadow-sm hover:shadow-2xl transition-all duration-500 rounded-[2rem] border-none overflow-hidden group cursor-default bg-white relative">
-        <div className="absolute top-0 right-0 w-32 h-32 bg-slate-50 rounded-full -mr-16 -mt-16 group-hover:scale-150 transition-transform duration-700 opacity-50" />
+      <Card className="shadow-sm hover:shadow-2xl transition-all duration-500 rounded-[2rem] border-none overflow-hidden group cursor-pointer bg-white relative">
+        <div className="absolute top-0 right-0 w-32 h-32 bg-slate-50 rounded-full -mr-16 -mt-16 group-hover:scale-150 transition-transform duration-700 opacity-50 pointer-events-none" />
         
-        <div className="relative z-10">
+        <div className="relative z-10 select-none">
           <div className="flex justify-between items-start mb-6">
             <div
               className={`w-14 h-14 rounded-2xl ${c.iconBg} ${c.text} ${c.hoverBg} ${c.hoverText} flex items-center justify-center transition-all duration-500 shadow-inner`}
@@ -365,6 +369,7 @@ const DashboardPage = () => {
   const { data: formStatus, isLoading: statusLoading } = useGetFormStatusQuery();
   const { data: dashboardData, isLoading } = useGetDashboardQuery();
   const [visible, setVisible] = useState(false);
+  const navigate = useNavigate();
 
   const stats = [
     {
@@ -373,6 +378,7 @@ const DashboardPage = () => {
       icon: "pi-comments",
       color: "indigo",
       change: "+12%",
+      onClick: () => navigate('/feedbacks')
     },
     {
       title: "Academic Quality",
@@ -380,24 +386,28 @@ const DashboardPage = () => {
       icon: "pi-star-fill",
       color: "emerald",
       change: "+0.3",
+      onClick: () => navigate('/analytics')
     },
     {
-      title: "Faculty Cadre",
+      title: "Total Faculty Members",
       value: dashboardData?.totalFaculty || 0,
       icon: "pi-users",
       color: "orange",
+      onClick: () => navigate('/faculty')
     },
     {
-      title: "Curriculum Scope",
+      title: "Total Courses",
       value: dashboardData?.totalCourses || 0,
       icon: "pi-book",
       color: "indigo",
+      onClick: () => navigate('/courses')
     },
     {
-      title: "Divisions",
+      title: "Total Departments",
       value: dashboardData?.totalDepartments || 0,
       icon: "pi-building",
       color: "emerald",
+      onClick: () => navigate('/departments')
     },
   ];
 
