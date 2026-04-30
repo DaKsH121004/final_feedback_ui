@@ -129,27 +129,26 @@ const CoursesPage = () => {
   };
 
   return (
-    <div className="max-w-6xl mx-auto p-4 md:p-8">
+    <div className="max-w-6xl mx-auto p-4 md:p-8 space-y-12">
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
         {/* Main Card: Add Course */}
-        <Card className="shadow-2xl rounded-[2.5rem] border-none overflow-hidden mb-12 bg-white/80 backdrop-blur-sm">
-          <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-emerald-900 p-8 md:p-12 relative overflow-hidden">
-            {/* Background Decorations */}
-            <div className="absolute top-0 right-0 w-96 h-96 bg-emerald-500/10 rounded-full -mr-32 -mt-32 blur-[100px]" />
-            <div className="absolute bottom-0 left-0 w-64 h-64 bg-blue-500/10 rounded-full -ml-32 -mb-32 blur-[80px]" />
+        <Card className="shadow-2xl rounded-[2.5rem] border-none overflow-hidden mb-12 bg-white/80 backdrop-blur-sm relative">
+           <div className="absolute top-0 right-0 p-12 opacity-5 pointer-events-none">
+             <i className="pi pi-book text-9xl text-white" />
+           </div>
+
+          <div className="bg-gradient-to-br from-[#701515] via-[#4a0d0d] to-black p-10 md:p-14 relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-96 h-96 bg-amber-500/10 rounded-full -mr-32 -mt-32 blur-[100px]" />
             
             <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
               <div className="max-w-2xl">
                 <div className="flex items-center gap-3 mb-4">
-                  <div className="bg-emerald-500/20 p-2 rounded-xl backdrop-blur-md">
-                    <i className="pi pi-book text-emerald-400 text-xl"></i>
-                  </div>
-                  <span className="text-emerald-400 font-bold uppercase tracking-widest text-xs">Curriculum Management</span>
+                  <span className="bg-amber-500/20 text-amber-400 text-[10px] font-black px-3 py-1 rounded-lg uppercase tracking-[0.2em] border border-amber-500/20 backdrop-blur-md">Curriculum Management</span>
                 </div>
-                <h1 className="text-4xl md:text-5xl font-black text-white mb-4 tracking-tighter">
+                <h1 className="text-4xl md:text-5xl font-serif font-black text-white mb-4 tracking-tighter">
                   Manage Courses
                 </h1>
-                <p className="text-slate-300 text-lg font-medium opacity-90 leading-relaxed">
+                <p className="text-red-100/70 text-lg font-medium max-w-2xl leading-relaxed">
                   Easily create, organize, and monitor your academic courses from one central dashboard.
                 </p>
               </div>
@@ -159,7 +158,7 @@ const CoursesPage = () => {
                   type="button"
                   label="Bulk Upload (.xlsx)"
                   icon="pi pi-upload"
-                  className="p-button-outlined text-white border-emerald-500/50 hover:bg-emerald-500/10 hover:border-emerald-400 transition-all duration-300 rounded-2xl font-bold px-8 py-4 border-2 shadow-lg shadow-emerald-900/20"
+                  className="p-button-text text-white border-2 border-white/20 hover:border-amber-500/50 hover:bg-white/5 transition-all duration-300 rounded-2xl font-black text-[10px] uppercase tracking-widest px-8 h-14"
                   onClick={() => setShowBulkUpload(true)}
                 />
               </div>
@@ -167,10 +166,10 @@ const CoursesPage = () => {
           </div>
 
           <div className="p-8 md:p-12">
-            <form onSubmit={handleSubmit} className="flex flex-col gap-10">
+            <form onSubmit={handleSubmit} className="space-y-10">
               {submitted && (
                 <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}>
-                  <Message severity="success" text="New course successfully integrated into the system." className="w-full rounded-2xl border-none shadow-lg py-4 px-6 bg-emerald-50 text-emerald-700" />
+                  <Message severity="success" text="New course successfully integrated into the system." className="w-full rounded-2xl border-none shadow-lg py-4 bg-emerald-50 text-emerald-700 font-bold" />
                 </motion.div>
               )}
 
@@ -178,23 +177,24 @@ const CoursesPage = () => {
                 <div className="flex flex-col gap-3">
                   <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Course Identification Name</label>
                   <div className="relative group">
-                    <i className="pi pi-pencil absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-emerald-500 transition-colors"></i>
+                    <i className="pi pi-pencil absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-[#701515] transition-colors"></i>
                     <InputText
                       value={courseName}
                       onChange={(e) => setCourseName(e.target.value)}
                       placeholder="e.g. Advanced Data Structures & Algorithms"
-                      className="w-full rounded-2xl border-slate-100 bg-slate-50/50 p-5 pl-14 focus:ring-8 focus:ring-emerald-500/5 focus:border-emerald-500/50 transition-all text-slate-700 font-semibold"
+                      className="w-full rounded-2xl border-slate-100 bg-slate-50/50 p-5 pl-14 focus:ring-8 focus:ring-[#701515]/5 transition-all text-slate-700 font-bold"
                       required
                     />
                   </div>
                 </div>
               </div>
 
-              <div className="flex justify-end pt-4">
+              <div className="flex justify-end pt-4 border-t border-slate-100">
                 <Button
                   label="Add New Course"
                   icon="pi pi-plus-circle"
-                  className="p-button-primary rounded-2xl font-black px-12 py-5 shadow-2xl shadow-emerald-900/40 bg-gradient-to-r from-emerald-600 to-teal-800 border-none hover:scale-[1.02] active:scale-95 transition-all duration-300"
+                  className="rounded-2xl font-black text-[10px] uppercase tracking-widest px-12 h-14 shadow-2xl shadow-red-900/20 border-none transition-all duration-300 hover:scale-105 active:scale-95"
+                  style={{ background: 'linear-gradient(135deg, #701515 0%, #4a0d0d 100%)', color: '#fff' }}
                   type="submit"
                 />
               </div>
@@ -207,22 +207,22 @@ const CoursesPage = () => {
           <div className="p-8 md:p-12">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 mb-12">
               <div>
-                <div className="flex items-center gap-2 mb-1">
-                  <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
-                  <h2 className="text-3xl font-black text-slate-900 tracking-tight">Active Curriculum</h2>
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="w-1.5 h-6 bg-[#701515] rounded-full"></div>
+                  <h2 className="text-3xl font-serif font-black text-slate-900 tracking-tight">Active Curriculum</h2>
                 </div>
-                <p className="text-sm font-bold text-slate-400">Inventorying {courses?.courses?.length || 0} unique courses</p>
+                <p className="text-sm font-bold text-slate-400 uppercase tracking-widest ml-4">Inventorying {courses?.courses?.length || 0} unique courses</p>
               </div>
               <Button
-                label="Export to Excel"
+                label="Export Registry (.xlsx)"
                 icon="pi pi-file-excel"
-                className="p-button-outlined p-button-secondary rounded-2xl font-bold px-8 py-4 border-2 border-slate-200 hover:border-slate-800 hover:bg-slate-800 hover:text-white transition-all duration-300"
+                className="p-button-text p-button-secondary font-black text-[10px] uppercase tracking-widest border-2 border-slate-100 rounded-2xl px-8 h-12 hover:bg-slate-50 transition-all"
                 onClick={downloadExcel}
                 disabled={!courses?.courses?.length}
               />
             </div>
 
-            <div className="rounded-2xl border border-slate-100 overflow-hidden shadow-inner">
+            <div className="rounded-[2.5rem] border border-slate-100 overflow-hidden shadow-sm">
               <DataTable
                 value={courses?.courses}
                 loading={isLoading}
@@ -231,24 +231,24 @@ const CoursesPage = () => {
                 rows={10}
                 emptyMessage="No academic records found."
                 responsiveLayout="stack"
-                rowClassName={() => 'hover:bg-slate-50/50 cursor-default transition-colors duration-200'}
+                rowClassName={() => 'hover:bg-slate-50/50 transition-colors duration-200'}
               >
                 <Column 
                   field="id" 
-                  header="ID REF" 
-                  className="font-bold text-slate-400 px-6 py-4" 
+                  header="REF" 
+                  className="font-black text-slate-400 px-8 py-6 text-xs" 
                   style={{ width: '120px' }}
                 />
                 <Column 
                   field="courseName" 
                   header="COURSE SPECIFICATION" 
-                  className="font-extrabold text-slate-700 px-6 py-4"
+                  className="font-black text-slate-800 px-8 py-6 text-lg"
                   body={(rowData) => (
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center text-slate-400">
-                        <i className="pi pi-book text-xs"></i>
+                    <div className="flex items-center gap-4">
+                      <div className="w-10 h-10 rounded-xl bg-red-50 flex items-center justify-center text-[#701515]">
+                        <i className="pi pi-book"></i>
                       </div>
-                      {rowData.courseName}
+                      <span className="tracking-tight">{rowData.courseName}</span>
                     </div>
                   )}
                 />
@@ -256,6 +256,131 @@ const CoursesPage = () => {
             </div>
           </div>
         </Card>
+
+        {/* BULK UPLOAD DIALOG */}
+        <Dialog
+          header={
+            <div className="flex items-center gap-4 py-2">
+              <div className="bg-red-50 p-3 rounded-2xl">
+                <i className="pi pi-upload text-[#701515] text-xl"></i>
+              </div>
+              <div className="flex flex-col">
+                <span className="text-2xl font-serif font-black text-slate-900 tracking-tight leading-none">Bulk Import</span>
+                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">Accelerated Course Setup</span>
+              </div>
+            </div>
+          }
+          visible={showBulkUpload}
+          style={{ width: '90vw', maxWidth: '700px' }}
+          modal
+          onHide={() => {
+            setShowBulkUpload(false);
+            setExcelData([]);
+            setBulkError(null);
+          }}
+          className="rounded-[2.5rem] overflow-hidden"
+          maskClassName="backdrop-blur-md bg-[#701515]/10"
+        >
+          <div className="flex flex-col gap-8 pt-4 pb-2">
+            {bulkError && (
+              <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
+                <Message severity="error" text={bulkError} className="w-full rounded-2xl border-none shadow-md" />
+              </motion.div>
+            )}
+            
+            {bulkSuccess && (
+              <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
+                <Message 
+                  severity={bulkSuccess.includes("Skipped") ? "warn" : "success"} 
+                  content={(
+                    <div className="flex flex-col gap-2 py-2 px-4">
+                      <span className="font-black text-sm uppercase tracking-wider">Operation Status:</span>
+                      <span className="text-base font-medium opacity-90">{bulkSuccess}</span>
+                    </div>
+                  )} 
+                  className="w-full rounded-2xl border-none shadow-md" 
+                />
+              </motion.div>
+            )}
+
+            <div 
+              className="group border-2 border-dashed border-slate-100 rounded-[2rem] p-12 flex flex-col items-center justify-center gap-6 bg-slate-50/50 hover:bg-red-50/30 hover:border-[#701515]/30 transition-all duration-500 cursor-pointer relative overflow-hidden"
+              onClick={() => document.getElementById('excel-upload').click()}
+            >
+              <div className="w-20 h-20 bg-white rounded-3xl shadow-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-500">
+                <i className="pi pi-file-excel text-3xl text-[#701515]"></i>
+              </div>
+              
+              <div className="text-center relative z-10">
+                <p className="text-xl font-black text-slate-800 mb-2 tracking-tight">Drop your Excel sheet here</p>
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">or click to browse from storage</p>
+              </div>
+
+              <input
+                type="file"
+                accept=".xlsx, .xls"
+                id="excel-upload"
+                className="hidden"
+                onChange={handleFileUpload}
+              />
+            </div>
+
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-2">
+              <div className="flex items-center gap-3 text-slate-500 text-[10px] font-black uppercase tracking-widest">
+                <i className="pi pi-info-circle text-[#701515]"></i>
+                <span>Mandatory header: Course Name</span>
+              </div>
+              <Button
+                type="button"
+                label="Download Protocol Template"
+                icon="pi pi-download"
+                className="p-button-text p-button-secondary font-black text-[10px] uppercase tracking-widest h-12"
+                onClick={downloadTemplate}
+              />
+            </div>
+
+            {excelData.length > 0 && (
+              <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} className="mt-4">
+                <div className="flex items-center justify-between mb-4 px-2">
+                  <span className="font-black text-slate-700 flex items-center gap-2 text-[10px] uppercase tracking-widest">
+                    <i className="pi pi-eye text-amber-500"></i>
+                    Data Preview ({excelData.length} records)
+                  </span>
+                </div>
+                <div className="border border-slate-100 rounded-2xl overflow-hidden shadow-2xl">
+                  <DataTable value={excelData} paginator rows={3} responsiveLayout="scroll" className="p-datatable-sm">
+                    <Column field="courseName" header="COURSE NAME" className="font-bold text-slate-600 p-4" />
+                  </DataTable>
+                </div>
+              </motion.div>
+            )}
+
+            <div className="flex justify-end items-center gap-4 mt-6 pt-4 border-t border-slate-50">
+              <Button
+                type="button"
+                label="Abort"
+                className="p-button-text p-button-secondary font-black text-[10px] uppercase tracking-widest h-14 px-8"
+                onClick={() => {
+                  setShowBulkUpload(false);
+                  setExcelData([]);
+                }}
+              />
+              <Button
+                type="button"
+                label="Finalize Upload"
+                icon="pi pi-check-circle"
+                className="rounded-2xl font-black text-[10px] uppercase tracking-widest px-10 h-14 shadow-2xl shadow-red-900/20 border-none"
+                style={{ background: 'linear-gradient(135deg, #701515 0%, #4a0d0d 100%)', color: '#fff' }}
+                disabled={excelData.length === 0 || isUploading}
+                loading={isUploading}
+                onClick={handleBulkSubmit}
+              />
+            </div>
+          </div>
+        </Dialog>
+      </motion.div>
+    </div>
+  );
 
         {/* BULK UPLOAD DIALOG */}
         <Dialog
