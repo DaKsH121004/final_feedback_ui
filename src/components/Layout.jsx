@@ -78,8 +78,8 @@ const Layout = ({ children }) => {
                 animate={{ opacity: 1 }}
                 className="flex flex-col"
               >
-                <span className="text-sm font-bold text-white tracking-widest leading-none">MANAV RACHNA</span>
-                <span className="text-[10px] font-medium text-amber-400 tracking-[0.2em] mt-1">VIDYANTARIKSHAL</span>
+                <span className="text-sm font-black text-white tracking-widest leading-none uppercase">Manav Rachna</span>
+                <span className="text-[10px] font-bold text-amber-500 tracking-[0.15em] mt-1 uppercase">University</span>
               </motion.div>
             )}
           </div>
@@ -150,7 +150,11 @@ const Layout = ({ children }) => {
           </div>
 
           <div className="flex items-center gap-6">
-            <div className="flex items-center gap-4 border-l border-slate-200 pl-6 cursor-pointer group" onClick={handleLogout}>
+            <div className="flex items-center gap-4 border-l border-slate-200 pl-6 cursor-pointer group" onClick={() => {
+              if (window.confirm("Security Alert: You are about to terminate the current administrative session. Do you wish to proceed with Logout?")) {
+                handleLogout();
+              }
+            }}>
               <div className="text-right hidden sm:block">
                 <p className="text-sm font-black text-slate-900 group-hover:text-red-800 transition-colors leading-none mb-1">{user?.fullName || user?.name || 'Administrator'}</p>
                 <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none">{user?.role?.replace('SUPERADMIN', 'SYSTEM ADMIN')}</p>

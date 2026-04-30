@@ -445,15 +445,15 @@ const DashboardPage = () => {
         </div>
         <div className="flex flex-wrap gap-4">
           <Button
-            label="System Configuration"
+            label="Feedback Form Control"
             icon="pi pi-sliders-h"
             className="p-button-text p-button-secondary rounded-2xl font-black text-xs uppercase tracking-widest px-6 py-4 hover:bg-slate-50 transition-all border border-slate-200"
             onClick={() => setVisible(true)}
           />
-          <Link to="/create-form">
+          <Link to="/analytics">
             <Button
-              label="Initiate Feedback"
-              icon="pi pi-plus-circle"
+              label="Audit Analytics"
+              icon="pi pi-chart-line"
               className="rounded-2xl font-black text-xs uppercase tracking-widest px-8 py-4 shadow-xl shadow-red-900/20 border-none transition-transform hover:scale-105 active:scale-95"
               style={{ background: 'linear-gradient(135deg, #701515 0%, #4a0d0d 100%)', color: '#fff' }}
             />
