@@ -663,12 +663,7 @@ const CreateFormPage = () => {
     isError,
   } = useValidateFormQuery(token, { skip: !token });
 
-  const [formData, setFormData] = useState({
-    submittedAt: new Date(),
-    schoolId: null,
-    departmentId: null,
-    semester: null,
-    classSection: "",
+  const emptyEval = {
     facultyId: null,
     courseId: null,
     q1: 0,
@@ -677,72 +672,112 @@ const CreateFormPage = () => {
     q4: 0,
     q5: 0,
     comments: "",
+  };
+
+  const [commonData, setCommonData] = useState({
+    schoolId: null,
+    departmentId: null,
+    semester: null,
+    classSection: "",
   });
 
-  const [submitted, setSubmitted] = useState(false);
+  // Pre-fill 5 subjects as requested
+  const [evaluations, setEvaluations] = useState([
+    { ...emptyEval },
+    { ...emptyEval },
+    { ...emptyEval },
+    { ...emptyEval },
+    { ...emptyEval },
+  ]);
 
-  const updateField = (field, value) =>
-    setFormData((prev) => ({ ...prev, [field]: value }));
+  const [submitted, setSubmitted] = useState(false);
+  const [submitError, setSubmitError] = useState(null);
+
+  const updateCommonField = (field, value) =>
+    setCommonData((prev) => ({ ...prev, [field]: value }));
+
+  const updateEvalField = (index, field, value) => {
+    setEvaluations((prev) => {
+      const newEvals = [...prev];
+      newEvals[index] = { ...newEvals[index], [field]: value };
+      return newEvals;
+    });
+  };
+
+  const addMoreSubject = () => {
+    setEvaluations((prev) => [...prev, { ...emptyEval }]);
+  };
 
   const filteredDepartments = departments?.departments?.filter(
-    (d) => d.school.id === formData.schoolId
+    (d) => d.school.id === commonData.schoolId
   );
   const filteredFaculty = faculty?.faculties?.filter((f) =>
-    f.departments?.some((d) => d.id === formData.departmentId)
+    f.departments?.some((d) => d.id === commonData.departmentId)
   );
   const selectedDepartment = departments?.departments?.find(
-    (d) => d.id === formData.departmentId
+    (d) => d.id === commonData.departmentId
   );
   const cleanDeptName = selectedDepartment?.departmentName?.trim();
   const availableSections = classSection[cleanDeptName] || [];
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setSubmitError(null);
+
     if (
-      !formData.schoolId ||
-      !formData.departmentId ||
-      !formData.facultyId ||
-      !formData.courseId
+      !commonData.schoolId ||
+      !commonData.departmentId ||
+      !commonData.semester ||
+      !commonData.classSection
     ) {
-      alert("Please fill all required fields");
+      alert("Please fill all Academic Details.");
       return;
     }
+
+    // Filter out evaluations that are completely empty
+    const validEvals = evaluations.filter((ev) => ev.facultyId && ev.courseId);
+
+    if (validEvals.length === 0) {
+      alert("Please provide feedback for at least one subject (select Faculty and Course).");
+      return;
+    }
+
     try {
-      const payload = {
-        schoolId: formData.schoolId,
-        departmentId: formData.departmentId,
-        semester: Number(formData.semester),
-        classSection: formData.classSection,
-        facultyId: formData.facultyId,
-        courseId: formData.courseId,
-        q1: formData.q1,
-        q2: formData.q2,
-        q3: formData.q3,
-        q4: formData.q4,
-        q5: formData.q5,
-        remarks: formData.comments,
-      };
-      await addFeedback(payload).unwrap();
+      // Submit all valid evaluations
+      await Promise.all(
+        validEvals.map((ev) => {
+          const payload = {
+            schoolId: commonData.schoolId,
+            departmentId: commonData.departmentId,
+            semester: Number(commonData.semester),
+            classSection: commonData.classSection,
+            facultyId: ev.facultyId,
+            courseId: ev.courseId,
+            q1: ev.q1,
+            q2: ev.q2,
+            q3: ev.q3,
+            q4: ev.q4,
+            q5: ev.q5,
+            remarks: ev.comments,
+          };
+          return addFeedback(payload).unwrap();
+        })
+      );
+
       setSubmitted(true);
-      setFormData({
-        submittedAt: new Date(),
-        schoolId: null,
-        departmentId: null,
-        semester: "",
-        classSection: "",
-        facultyId: null,
-        courseId: null,
-        q1: 0,
-        q2: 0,
-        q3: 0,
-        q4: 0,
-        q5: 0,
-        comments: "",
-      });
-      setTimeout(() => setSubmitted(false), 3000);
+      // Reset evaluations
+      setEvaluations([
+        { ...emptyEval },
+        { ...emptyEval },
+        { ...emptyEval },
+        { ...emptyEval },
+        { ...emptyEval },
+      ]);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      setTimeout(() => setSubmitted(false), 5000);
     } catch (err) {
       console.error("API Error:", err);
-      alert(err?.data?.message || "Failed to submit feedback");
+      setSubmitError(err?.data?.message || "Failed to submit feedback. Some evaluations may not have been saved.");
     }
   };
 
@@ -896,7 +931,7 @@ const CreateFormPage = () => {
                   onSubmit={handleSubmit}
                   style={{ display: "flex", flexDirection: "column", gap: 32 }}
                 >
-                  {/* Success message */}
+                  {/* Success / Error message */}
                   {submitted && (
                     <motion.div
                       initial={{ opacity: 0, scale: 0.96 }}
@@ -904,7 +939,16 @@ const CreateFormPage = () => {
                     >
                       <Message
                         severity="success"
-                        text="✅ Feedback submitted successfully! Thank you."
+                        text="✅ All feedback submitted successfully! Thank you."
+                        style={{ width: "100%", borderRadius: 10 }}
+                      />
+                    </motion.div>
+                  )}
+                  {submitError && (
+                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+                      <Message
+                        severity="error"
+                        text={`❌ ${submitError}`}
                         style={{ width: "100%", borderRadius: 10 }}
                       />
                     </motion.div>
@@ -915,124 +959,150 @@ const CreateFormPage = () => {
                     <SectionHeading>Academic Details</SectionHeading>
                     <div style={styles.grid2}>
                       <Dropdown
-                        value={formData.schoolId}
+                        value={commonData.schoolId}
                         options={schools?.schools || []}
                         optionLabel="schoolName"
                         optionValue="id"
-                        onChange={(e) => updateField("schoolId", e.value)}
+                        onChange={(e) => updateCommonField("schoolId", e.value)}
                         placeholder="Select School"
                         className="w-full"
                         filter
                       />
                       <Dropdown
-                        value={formData.departmentId}
+                        value={commonData.departmentId}
                         options={filteredDepartments || []}
                         optionLabel="departmentName"
                         optionValue="id"
                         onChange={(e) => {
-                          updateField("departmentId", e.value);
-                          updateField("classSection", "");
+                          updateCommonField("departmentId", e.value);
+                          updateCommonField("classSection", "");
                         }}
                         placeholder="Select Department"
                         className="w-full"
                         filter
                       />
                       <Dropdown
-                        value={formData.facultyId}
-                        options={filteredFaculty || []}
-                        optionLabel="facultyName"
-                        optionValue="id"
-                        onChange={(e) => updateField("facultyId", e.value)}
-                        placeholder="Select Faculty"
-                        className="w-full"
-                        filter
-                      />
-                      <Dropdown
-                        value={formData.courseId}
-                        options={courses?.courses || []}
-                        optionLabel="courseName"
-                        optionValue="id"
-                        onChange={(e) => updateField("courseId", e.value)}
-                        placeholder="Select Course"
-                        className="w-full"
-                        filter
-                      />
-                      <Dropdown
-                        value={formData.semester}
+                        value={commonData.semester}
                         options={semester}
-                        onChange={(e) => updateField("semester", e.value)}
+                        onChange={(e) => updateCommonField("semester", e.value)}
                         placeholder="Select Semester"
                         className="w-full"
                         filter
                       />
                       <Dropdown
-                        value={formData.classSection}
+                        value={commonData.classSection}
                         options={availableSections}
-                        onChange={(e) => updateField("classSection", e.value)}
+                        onChange={(e) => updateCommonField("classSection", e.value)}
                         placeholder="Select Class Section"
                         className="w-full"
-                        disabled={!formData.departmentId}
+                        disabled={!commonData.departmentId}
                       />
                     </div>
                   </div>
 
-                  {/* ── Feedback Ratings ── */}
-                  <div>
-                    <SectionHeading>Feedback Ratings</SectionHeading>
-                    <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                      {RATING_QUESTIONS.map((q, i) => (
-                        <motion.div
-                          key={q.id}
-                          style={styles.ratingRow}
-                          initial={{ opacity: 0, x: -10 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          transition={{ delay: i * 0.06 }}
-                        >
-                          <span style={styles.ratingLabel}>
-                            <span
-                              style={{
-                                display: "inline-block",
-                                width: 22,
-                                height: 22,
-                                borderRadius: "50%",
-                                background: `linear-gradient(135deg, ${MR.maroon}, ${MR.maroonLight})`,
-                                color: "#fff",
-                                fontSize: 11,
-                                fontWeight: 700,
-                                textAlign: "center",
-                                lineHeight: "22px",
-                                marginRight: 10,
-                              }}
-                            >
-                              {i + 1}
-                            </span>
-                            {q.label}
-                          </span>
-                          <Rating
-                            value={formData[q.id]}
-                            onChange={(e) => updateField(q.id, e.value)}
-                            cancel={false}
+                  {/* ── Multiple Subject Evaluations ── */}
+                  <div style={{ display: "flex", flexDirection: "column", gap: 40 }}>
+                    {evaluations.map((ev, index) => (
+                      <div
+                        key={index}
+                        style={{
+                          background: MR.cream,
+                          border: `1px solid ${MR.goldLight}`,
+                          borderRadius: 16,
+                          padding: 24,
+                          boxShadow: "inset 0 2px 4px rgba(0,0,0,0.02)",
+                        }}
+                      >
+                        <SectionHeading>Subject {index + 1}</SectionHeading>
+
+                        {/* Subject details */}
+                        <div style={{ ...styles.grid2, marginBottom: 24 }}>
+                          <Dropdown
+                            value={ev.facultyId}
+                            options={filteredFaculty || []}
+                            optionLabel="facultyName"
+                            optionValue="id"
+                            onChange={(e) => updateEvalField(index, "facultyId", e.value)}
+                            placeholder="Select Faculty"
+                            className="w-full"
+                            filter
                           />
-                        </motion.div>
-                      ))}
-                    </div>
+                          <Dropdown
+                            value={ev.courseId}
+                            options={courses?.courses || []}
+                            optionLabel="courseName"
+                            optionValue="id"
+                            onChange={(e) => updateEvalField(index, "courseId", e.value)}
+                            placeholder="Select Course"
+                            className="w-full"
+                            filter
+                          />
+                        </div>
+
+                        {/* Ratings */}
+                        <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 24 }}>
+                          {RATING_QUESTIONS.map((q, i) => (
+                            <div key={q.id} style={styles.ratingRow}>
+                              <span style={styles.ratingLabel}>
+                                <span
+                                  style={{
+                                    display: "inline-block",
+                                    width: 22,
+                                    height: 22,
+                                    borderRadius: "50%",
+                                    background: `linear-gradient(135deg, ${MR.maroon}, ${MR.maroonLight})`,
+                                    color: "#fff",
+                                    fontSize: 11,
+                                    fontWeight: 700,
+                                    textAlign: "center",
+                                    lineHeight: "22px",
+                                    marginRight: 10,
+                                  }}
+                                >
+                                  {i + 1}
+                                </span>
+                                {q.label}
+                              </span>
+                              <Rating
+                                value={ev[q.id]}
+                                onChange={(e) => updateEvalField(index, q.id, e.value)}
+                                cancel={false}
+                              />
+                            </div>
+                          ))}
+                        </div>
+
+                        {/* Remarks */}
+                        <div>
+                          <textarea
+                            placeholder="Share any additional comments or suggestions for this subject..."
+                            value={ev.comments}
+                            onChange={(e) => updateEvalField(index, "comments", e.target.value)}
+                            style={styles.textarea}
+                            rows={3}
+                            onFocus={(e) => (e.target.style.borderColor = MR.maroon)}
+                            onBlur={(e) => (e.target.style.borderColor = MR.slate200)}
+                          />
+                        </div>
+                      </div>
+                    ))}
                   </div>
 
-                  {/* ── Remarks ── */}
-                  <div>
-                    <SectionHeading>Additional Remarks</SectionHeading>
-                    <textarea
-                      placeholder="Share any additional comments or suggestions..."
-                      value={formData.comments}
-                      onChange={(e) => updateField("comments", e.target.value)}
-                      style={styles.textarea}
-                      rows={4}
-                      onFocus={(e) =>
-                        (e.target.style.borderColor = MR.maroon)
-                      }
-                      onBlur={(e) =>
-                        (e.target.style.borderColor = MR.slate200)
-                      }
+                  {/* Add More Subjects Option */}
+                  <div style={{ display: "flex", justifyContent: "center" }}>
+                    <Button
+                      type="button"
+                      label="+ Add Another Subject"
+                      className="p-button-outlined"
+                      style={{
+                        borderColor: MR.gold,
+                        color: MR.maroonDark,
+                        fontWeight: 700,
+                        padding: "10px 24px",
+                        borderRadius: 10,
+                        backgroundColor: "transparent",
+                      }}
+                      onClick={addMoreSubject}
                     />
                   </div>
 
