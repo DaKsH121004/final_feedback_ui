@@ -755,8 +755,8 @@ const CourseAssignPage = () => {
                 <div className="border border-slate-100 rounded-2xl overflow-hidden shadow-2xl">
                   <DataTable value={excelData} paginator rows={3} responsiveLayout="scroll" className="p-datatable-sm">
                     <Column field="courseName" header="COURSE" className="font-bold text-slate-600 p-4" />
-                    <Column field="faculty" header="FACULTY" className="font-bold text-slate-600 p-4" />
-                    <Column field="department" header="DEPT" className="font-bold text-slate-600 p-4" />
+                    <Column field="facultyName" header="FACULTY" className="font-bold text-slate-600 p-4" />
+                    <Column field="departmentName" header="DEPT" className="font-bold text-slate-600 p-4" />
                   </DataTable>
                 </div>
               </motion.div>
