@@ -12,6 +12,7 @@ import {
   useAddCourseMutation, 
   useUpdateCourseMutation, 
   useDeleteCourseMutation,
+  useDeleteAllCoursesMutation,
   useGetDepartmentsQuery,
   useBulkUploadCoursesMutation 
 } from '../services/api';
@@ -32,6 +33,7 @@ const CoursesPage = () => {
   const [addCourse] = useAddCourseMutation();
   const [updateCourse] = useUpdateCourseMutation();
   const [deleteCourse] = useDeleteCourseMutation();
+  const [deleteAllCourses] = useDeleteAllCoursesMutation();
   const [bulkUploadCourses] = useBulkUploadCoursesMutation();
 
   // Bulk Upload States
@@ -150,6 +152,17 @@ const CoursesPage = () => {
     }
   };
 
+  const handleDeleteAll = async () => {
+    if (window.confirm('Are you sure you want to delete ALL courses? This action cannot be undone.')) {
+      try {
+        await deleteAllCourses().unwrap();
+        refetch();
+      } catch (err) {
+        console.error('Failed to delete all courses:', err);
+      }
+    }
+  };
+
   const actionTemplate = (rowData) => (
     <div className="flex gap-2">
       <Button icon="pi pi-pencil" className="p-button-rounded p-button-text p-button-warning" onClick={() => handleEdit(rowData)} tooltip="Edit" />
@@ -193,6 +206,13 @@ const CoursesPage = () => {
           icon="pi pi-file-excel"
           className="p-button-text p-button-secondary font-black text-[10px] uppercase tracking-widest border-2 border-slate-100 rounded-2xl px-8 h-14 hover:bg-slate-50 transition-all w-full sm:w-auto"
           onClick={downloadExcel}
+          disabled={!courses?.courses?.length}
+        />
+        <Button
+          label="Delete All"
+          icon="pi pi-trash"
+          className="p-button-text p-button-danger font-black text-[10px] uppercase tracking-widest border-2 border-red-100 rounded-2xl px-8 h-14 hover:bg-red-50 transition-all w-full sm:w-auto"
+          onClick={handleDeleteAll}
           disabled={!courses?.courses?.length}
         />
       </div>

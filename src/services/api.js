@@ -139,6 +139,10 @@ export const api = createApi({
       query: (id) => ({ url: `/course/${id}`, method: 'DELETE' }),
       invalidatesTags: ['Courses'],
     }),
+    deleteAllCourses: builder.mutation({
+      query: () => ({ url: `/course/all`, method: 'DELETE' }),
+      invalidatesTags: ['Courses'],
+    }),
     getDashboard: builder.query({
       query: () => ({ url: "/dashboard", method: "GET" }),
     }),
@@ -208,6 +212,7 @@ export const {
   useAddCourseMutation,
   useUpdateCourseMutation,
   useDeleteCourseMutation,
+  useDeleteAllCoursesMutation,
   useGetDashboardQuery,
   useValidateFormQuery,
   useGetAssignmentsQuery,
