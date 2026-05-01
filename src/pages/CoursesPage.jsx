@@ -48,26 +48,89 @@ const CoursesPage = () => {
     const file = e.target.files[0];
     if (!file) return;
     setSelectedFile(file);
+    setBulkError(null);
 
     const reader = new FileReader();
     reader.onload = (evt) => {
-      const bstr = evt.target.result;
-      const wb = XLSX.read(bstr, { type: 'binary' });
-      const wsname = wb.SheetNames[0];
-      const ws = wb.Sheets[wsname];
-      const data = XLSX.utils.sheet_to_json(ws);
-      
-      const previewData = data.map((row, index) => {
-        const key = Object.keys(row).find(k => k.toLowerCase().trim() === 'course name') || 'Course Name';
-        return {
-          id: index,
-          courseName: row[key] || row['course name'] || row['Course Name'] || '',
-        };
-      }).filter(item => item.courseName);
+      try {
+        const data = new Uint8Array(evt.target.result);
+        const wb = XLSX.read(data, { type: 'array' });
+        const wsName = wb.SheetNames[0];
+        const ws = wb.Sheets[wsName];
+        
+        // Read as array of arrays for maximum robustness
+        const rows = XLSX.utils.sheet_to_json(ws, { header: 1 });
+        
+        if (rows.length === 0) {
+          setBulkError("The selected file is empty.");
+          setExcelData([]);
+          return;
+        }
 
-      setExcelData(previewData);
+        // Find the header row (the first row that contains something like "course")
+        let headerRowIndex = -1;
+        let colMap = { course: -1, dept: -1 };
+
+        for (let i = 0; i < Math.min(rows.length, 10); i++) {
+          const row = rows[i];
+          if (!row || !Array.isArray(row)) continue;
+          
+          const courseIdx = row.findIndex(cell => {
+            if (!cell) return false;
+            const s = String(cell).toLowerCase().replace(/\s/g, '');
+            return s.includes('course') || s.includes('subject') || s.includes('title');
+          });
+
+          if (courseIdx !== -1) {
+            headerRowIndex = i;
+            colMap.course = courseIdx;
+            colMap.dept = row.findIndex(cell => {
+              if (!cell) return false;
+              const s = String(cell).toLowerCase().replace(/\s/g, '');
+              return s.includes('department') || s.includes('dept');
+            });
+            break;
+          }
+        }
+
+        if (headerRowIndex === -1) {
+          setBulkError("Could not find a 'Course Name' column. Please check your file headers.");
+          setExcelData([]);
+          return;
+        }
+
+        const previewData = [];
+        for (let i = headerRowIndex + 1; i < rows.length; i++) {
+          const row = rows[i];
+          if (!row || row.length === 0) continue;
+          
+          const courseName = String(row[colMap.course] || '').trim();
+          if (!courseName) continue;
+
+          previewData.push({
+            id: i,
+            courseName: courseName,
+            department: colMap.dept !== -1 ? String(row[colMap.dept] || '').trim() : ''
+          });
+        }
+
+        if (previewData.length === 0) {
+          setBulkError("No valid data rows found below the header.");
+          setExcelData([]);
+        } else {
+          setExcelData(previewData);
+          setBulkError(null);
+        }
+      } catch (err) {
+        console.error("Error parsing Excel file:", err);
+        setBulkError("Failed to parse the Excel file. Please ensure it's a valid .xlsx or .xls file.");
+        setExcelData([]);
+      }
     };
-    reader.readAsBinaryString(file);
+    reader.onerror = () => {
+      setBulkError("Failed to read the file.");
+    };
+    reader.readAsArrayBuffer(file);
     e.target.value = null;
   };
 
@@ -313,7 +376,12 @@ const CoursesPage = () => {
         {/* Bulk Upload Dialog */}
         <Dialog 
           visible={showBulkUpload} 
-          onHide={() => setShowBulkUpload(false)}
+          onHide={() => {
+            setShowBulkUpload(false);
+            setExcelData([]);
+            setBulkError(null);
+            setSelectedFile(null);
+          }}
           header="Accelerated Course Import"
           style={{ width: '90vw', maxWidth: '600px' }}
           className="rounded-[2.5rem] overflow-hidden"
@@ -334,10 +402,14 @@ const CoursesPage = () => {
 
             {excelData.length > 0 && (
               <div className="px-2">
-                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Data Preview ({excelData.length} records)</p>
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-2">
+                  <i className="pi pi-eye text-amber-500"></i>
+                  Data Preview: <span className="text-[#701515]">{selectedFile?.name}</span> ({excelData.length} records)
+                </p>
                 <div className="border border-slate-100 rounded-2xl overflow-hidden">
                   <DataTable value={excelData} rows={3} className="p-datatable-sm">
                     <Column field="courseName" header="COURSE NAME" />
+                    {excelData.some(d => d.department) && <Column field="department" header="DEPARTMENT" />}
                   </DataTable>
                 </div>
               </div>
@@ -346,11 +418,12 @@ const CoursesPage = () => {
             <div className="flex justify-between items-center pt-4 border-t border-slate-50">
               <Button label="Download Template" icon="pi pi-download" className="p-button-text font-black text-[10px] uppercase" onClick={downloadTemplate} />
               <Button 
+                type="button"
                 label="Commit Upload" 
                 icon="pi pi-check-circle" 
-                className="rounded-2xl font-black text-[10px] uppercase tracking-widest px-8 h-12" 
-                style={{ background: '#701515', color: '#fff' }}
-                disabled={!selectedFile || isUploading}
+                className="rounded-2xl font-black text-[10px] uppercase tracking-widest px-10 h-14 shadow-2xl shadow-red-900/20 border-none" 
+                style={{ background: 'linear-gradient(135deg, #701515 0%, #4a0d0d 100%)', color: '#fff' }}
+                disabled={excelData.length === 0 || isUploading}
                 loading={isUploading}
                 onClick={handleBulkSubmit}
               />

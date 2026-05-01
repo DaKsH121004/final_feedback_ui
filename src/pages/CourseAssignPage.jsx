@@ -309,26 +309,88 @@ const CourseAssignPage = () => {
     const file = e.target.files[0];
     if (!file) return;
     setSelectedFile(file);
+    setBulkError(null);
 
     const reader = new FileReader();
     reader.onload = (evt) => {
-      const bstr = evt.target.result;
-      const wb = XLSX.read(bstr, { type: 'binary' });
-      const wsname = wb.SheetNames[0];
-      const ws = wb.Sheets[wsname];
-      const data = XLSX.utils.sheet_to_json(ws);
-      
-      const previewData = data.map((row, index) => ({
-        id: index,
-        department: row['Department'] || row['department'] || '',
-        courseName: row['Course Name'] || row['course name'] || '',
-        faculty: row['Faculty Name'] || row['faculty name'] || ''
-      }));
-      setExcelData(previewData);
+      try {
+        const data = new Uint8Array(evt.target.result);
+        const wb = XLSX.read(data, { type: 'array' });
+        const wsName = wb.SheetNames[0];
+        const ws = wb.Sheets[wsName];
+        
+        // Read raw data
+        const rows = XLSX.utils.sheet_to_json(ws, { header: 1 });
+        
+        if (rows.length === 0) {
+          setBulkError("The selected file is empty.");
+          setExcelData([]);
+          return;
+        }
+
+        // Search for headers in the first 10 rows
+        let headerRowIndex = -1;
+        let colMap = { course: -1, faculty: -1, dept: -1 };
+
+        for (let i = 0; i < Math.min(rows.length, 10); i++) {
+          const row = rows[i];
+          if (!row || !Array.isArray(row)) continue;
+
+          const courseIdx = row.findIndex(c => String(c || '').toLowerCase().includes('course'));
+          const facultyIdx = row.findIndex(c => String(c || '').toLowerCase().includes('faculty'));
+          const deptIdx = row.findIndex(c => {
+            const s = String(c || '').toLowerCase();
+            return s.includes('department') || s === 'dept';
+          });
+
+          if (courseIdx !== -1 || facultyIdx !== -1 || deptIdx !== -1) {
+            headerRowIndex = i;
+            colMap = { course: courseIdx, faculty: facultyIdx, dept: deptIdx };
+            break;
+          }
+        }
+
+        if (headerRowIndex === -1) {
+          setBulkError("Could not identify the header row. Please check your file columns.");
+          setExcelData([]);
+          return;
+        }
+
+        const previewData = [];
+        for (let i = headerRowIndex + 1; i < rows.length; i++) {
+          const row = rows[i];
+          if (!row || row.length === 0) continue;
+
+          const courseName = colMap.course !== -1 ? String(row[colMap.course] || '').trim() : '';
+          const facultyName = colMap.faculty !== -1 ? String(row[colMap.faculty] || '').trim() : '';
+          const deptName = colMap.dept !== -1 ? String(row[colMap.dept] || '').trim() : '';
+
+          if (!courseName && !facultyName && !deptName) continue;
+
+          previewData.push({
+            id: i,
+            courseName,
+            facultyName,
+            departmentName: deptName
+          });
+        }
+
+        if (previewData.length === 0) {
+          setBulkError("No valid data rows found.");
+          setExcelData([]);
+        } else {
+          setExcelData(previewData);
+          setBulkError(null);
+        }
+      } catch (err) {
+        setBulkError("Failed to parse the Excel file.");
+        setExcelData([]);
+      }
     };
-    reader.readAsBinaryString(file);
-    
-    // Reset file input
+    reader.onerror = () => {
+      setBulkError("Failed to read the file.");
+    };
+    reader.readAsArrayBuffer(file);
     e.target.value = null;
   };
 
@@ -619,6 +681,7 @@ const CourseAssignPage = () => {
             setShowBulkUpload(false);
             setExcelData([]);
             setBulkError(null);
+            setSelectedFile(null);
           }}
           className="rounded-[2.5rem] overflow-hidden"
           maskClassName="backdrop-blur-md bg-[#701515]/10"
@@ -686,7 +749,7 @@ const CourseAssignPage = () => {
                 <div className="flex items-center justify-between mb-4 px-2">
                   <span className="font-black text-slate-700 flex items-center gap-2 text-[10px] uppercase tracking-widest">
                     <i className="pi pi-eye text-amber-500"></i>
-                    Data Preview ({excelData.length} records)
+                    Data Preview: <span className="text-[#701515]">{selectedFile?.name}</span> ({excelData.length} records)
                   </span>
                 </div>
                 <div className="border border-slate-100 rounded-2xl overflow-hidden shadow-2xl">
