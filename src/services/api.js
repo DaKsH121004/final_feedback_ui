@@ -111,6 +111,10 @@ export const api = createApi({
       query: (id) => ({ url: `/faculty/delete/${id}`, method: 'DELETE' }),
       invalidatesTags: ['Faculty'],
     }),
+    getFacultyByDepartment: builder.query({
+      query: (departmentId) => ({ url: `/faculty/department/${departmentId}`, method: 'GET' }),
+      providesTags: ['Faculty'],
+    }),
     // Courses
     getCourses: builder.query({
       query: () => ({ url: "/course", method: "GET" }),
@@ -174,6 +178,14 @@ export const api = createApi({
       }),
       invalidatesTags: ['Assignments', 'Courses', 'Faculty'],
     }),
+    getAssignedCourses: builder.query({
+      query: ({ facultyId, departmentId, semester, section }) => ({
+        url: '/assignment/assigned-courses',
+        method: 'GET',
+        params: { facultyId, departmentId, semester, section },
+      }),
+      providesTags: ['Assignments'],
+    }),
   }),
   tagTypes: [
     "FormStatus",
@@ -214,5 +226,9 @@ export const {
   useUpdateAssignmentMutation,
   useDeleteAssignmentMutation,
   useBulkUploadAssignmentsMutation,
-  useBulkUploadCoursesMutation
+  useBulkUploadCoursesMutation,
+  useGetFacultyByDepartmentQuery,
+  useLazyGetFacultyByDepartmentQuery,
+  useGetAssignedCoursesQuery,
+  useLazyGetAssignedCoursesQuery
 } = api;

@@ -31,7 +31,7 @@ export const classSection = {
   "Law": ["BA LLB II", "BBALLB II", "LLB II", "LLM II", "BBA LLB IV", "BA LLB IV", "LLB IV", "BBA LLB VI", "BA LLB VI", "LLB VI", "BBA LLB VIII", "BA LLB VIII", "BBA LLB X", "BA LLB X"],
   "Bussiness": ["BBA BA II", "BBA EFB II", "BBA FAA II", "BBA GOM II", "MBA II", "BBA BA IV", "BBA EFB IV", "BBA FAA IV", "BBA GOM IV", "MBA IV", "BBA BA IV", "BBA EFB VI", "BBA FAA VI", "BBA GOM VI", "BBA GHCM VI"],
   "Robotics & Artificial Intelligence": ["R&AI 2", "R&AI 4", "R&AI 6"],
-  "Electronics & Communication Engineering": ["ECE 2", "ECE 4", "ECE 6"],
+  "Electronics & Communication": ["ECE 2", "ECE 4", "ECE 6"],
   "Sciences": ["M.Sc.(Chemistry) II", "M.Sc. (Chemistry) IV", "M.Sc.(Physics) IV", "M.Sc.(Maths) IV"],
-  "Education & Humanities": ["B.Ed Sem 2", "B Sc B.Ed Sem 2", "B.A B.Ed Sem 2", "B Sc B.Ed Sem 4", "B.A B.Ed Sem 4", "B Sc B.Ed Sem 6", "B.A B.Ed Sem 6", "B Sc B.Ed Sem 8", "B.A B.Ed Sem 8"]
+  "Education and Humanities": ["B.Ed Sem 2", "B Sc B.Ed Sem 2", "B.A B.Ed Sem 2", "B Sc B.Ed Sem 4", "B.A B.Ed Sem 4", "B Sc B.Ed Sem 6", "B.A B.Ed Sem 6", "B Sc B.Ed Sem 8", "B.A B.Ed Sem 8"]
 };

@@ -259,6 +259,8 @@ const CourseAssignPage = () => {
   const [selectedFaculty, setSelectedFaculty] = useState(null);
   const [selectedDepartment, setSelectedDepartment] = useState(null);
   const [selectedCourse, setSelectedCourse] = useState(null);
+  const [selectedSemester, setSelectedSemester] = useState(null);
+  const [selectedSection, setSelectedSection] = useState("");
   const [editingId, setEditingId] = useState(null);
   const [submitted, setSubmitted] = useState(false);
 
@@ -302,6 +304,8 @@ const CourseAssignPage = () => {
     setSelectedFaculty(null);
     setSelectedDepartment(null);
     setSelectedCourse(null);
+    setSelectedSemester(null);
+    setSelectedSection("");
     setEditingId(null);
   };
 
@@ -364,6 +368,8 @@ const CourseAssignPage = () => {
           const courseName = colMap.course !== -1 ? String(row[colMap.course] || '').trim() : '';
           const facultyName = colMap.faculty !== -1 ? String(row[colMap.faculty] || '').trim() : '';
           const deptName = colMap.dept !== -1 ? String(row[colMap.dept] || '').trim() : '';
+          const semesterVal = row.length > 3 ? String(row[3] || '').trim() : ''; // assuming order
+          const sectionVal = row.length > 4 ? String(row[4] || '').trim() : '';
 
           if (!courseName && !facultyName && !deptName) continue;
 
@@ -371,7 +377,9 @@ const CourseAssignPage = () => {
             id: i,
             courseName,
             facultyName,
-            departmentName: deptName
+            departmentName: deptName,
+            semester: semesterVal,
+            classSection: sectionVal
           });
         }
 
@@ -448,7 +456,9 @@ const CourseAssignPage = () => {
       departmentName: selectedDepartment.departmentName,
 
       courseId: selectedCourse.id,
-      courseName: selectedCourse.courseName
+      courseName: selectedCourse.courseName,
+      semester: selectedSemester,
+      classSection: selectedSection
     };
 
     try {
@@ -488,6 +498,8 @@ const CourseAssignPage = () => {
     setSelectedDepartment(dept || null);
     setSelectedFaculty(fac || null);
     setSelectedCourse(course || null);
+    setSelectedSemester(row.semester || null);
+    setSelectedSection(row.classSection || "");
 
     window.scrollTo({
       top: 0,
@@ -592,19 +604,45 @@ const CourseAssignPage = () => {
                 </div>
 
                 {/* Course Selection */}
-                <div className="flex flex-col gap-3">
-                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Assigned Course</label>
-                  <Dropdown
-                    value={selectedCourse}
-                    options={courses}
-                    optionLabel="courseName"
-                    onChange={(e) => setSelectedCourse(e.value)}
-                    placeholder="Select Course"
-                    className="w-full rounded-2xl border-slate-100 bg-slate-50/50 min-h-[64px] flex items-center px-2"
-                    filter
-                  />
+                  <div className="flex flex-col gap-3">
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Assigned Course</label>
+                    <Dropdown
+                      value={selectedCourse}
+                      options={courses}
+                      optionLabel="courseName"
+                      onChange={(e) => setSelectedCourse(e.value)}
+                      placeholder="Select Course"
+                      className="w-full rounded-2xl border-slate-100 bg-slate-50/50 min-h-[64px] flex items-center px-2"
+                      filter
+                    />
+                  </div>
+
+                  {/* Semester and Section Selection */}
+                  <div className="flex flex-col gap-3">
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Semester</label>
+                    <Dropdown
+                      value={selectedSemester}
+                      options={[1, 2, 3, 4, 5, 6, 7, 8]}
+                      onChange={(e) => setSelectedSemester(e.value)}
+                      placeholder="Select Semester"
+                      className="w-full rounded-2xl border-slate-100 bg-slate-50/50 min-h-[64px] flex items-center px-2"
+                      filter
+                    />
+                  </div>
+
+                  <div className="flex flex-col gap-3">
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Class Section</label>
+                    <Dropdown
+                      value={selectedSection}
+                      options={[]} // Placeholder for sections
+                      onChange={(e) => setSelectedSection(e.value)}
+                      placeholder="Select Section"
+                      className="w-full rounded-2xl border-slate-100 bg-slate-50/50 min-h-[64px] flex items-center px-2"
+                      filter
+                      editable
+                    />
+                  </div>
                 </div>
-              </div>
 
               <div className="flex justify-end items-center gap-6 pt-6 border-t border-slate-100">
                 {editingId && (
@@ -654,6 +692,8 @@ const CourseAssignPage = () => {
                 <Column field="id" header="ID" className="font-bold text-slate-400" />
                 <Column field="facultyName" header="Faculty" className="font-bold text-slate-800" />
                 <Column field="departmentName" header="Department" className="font-semibold text-slate-500" />
+                <Column field="semester" header="Sem" className="font-bold text-slate-500" />
+                <Column field="classSection" header="Sec" className="font-bold text-slate-500" />
                 <Column field="courseName" header="Course" className="font-bold text-[#701515]" />
                 <Column header="Actions" body={actionTemplate} />
               </DataTable>
@@ -757,6 +797,8 @@ const CourseAssignPage = () => {
                     <Column field="courseName" header="COURSE" className="font-bold text-slate-600 p-4" />
                     <Column field="facultyName" header="FACULTY" className="font-bold text-slate-600 p-4" />
                     <Column field="departmentName" header="DEPT" className="font-bold text-slate-600 p-4" />
+                    <Column field="semester" header="SEM" className="font-bold text-slate-600 p-4" />
+                    <Column field="classSection" header="SEC" className="font-bold text-slate-600 p-4" />
                   </DataTable>
                 </div>
               </motion.div>

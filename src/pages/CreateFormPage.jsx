@@ -361,7 +361,7 @@
 
 
 
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { Card } from "primereact/card";
 import { Dropdown } from "primereact/dropdown";
 import { InputText } from "primereact/inputtext";
@@ -374,11 +374,11 @@ import {
   useGetFormStatusQuery,
   useGetSchoolsQuery,
   useGetDepartmentsQuery,
-  useGetFacultyQuery,
   useGetCoursesQuery,
   useAddFeedbackMutation,
   useValidateFormQuery,
-  useGetAssignmentsQuery,
+  useLazyGetFacultyByDepartmentQuery,
+  useLazyGetAssignedCoursesQuery
 } from "../services/api";
 
 import { classSection, RATING_QUESTIONS, semester } from "../constants";
@@ -654,8 +654,12 @@ const CreateFormPage = () => {
   const { data: formStatus, isLoading: statusLoading } = useGetFormStatusQuery();
   const { data: schools } = useGetSchoolsQuery();
   const { data: departments } = useGetDepartmentsQuery();
-  const { data: faculty } = useGetFacultyQuery();
-  const { data: courses } = useGetCoursesQuery();
+  
+  const [getFacultyByDept] = useLazyGetFacultyByDepartmentQuery();
+  const [getAssignedCourses] = useLazyGetAssignedCoursesQuery();
+
+  const [filteredFaculty, setFilteredFaculty] = useState([]);
+  const [coursesPerEval, setCoursesPerEval] = useState({});
 
   const [addFeedback, { isLoading }] = useAddFeedbackMutation();
   const {
@@ -663,8 +667,6 @@ const CreateFormPage = () => {
     isLoading: loading,
     isError,
   } = useValidateFormQuery(token, { skip: !token });
-  
-  const { data: assignments } = useGetAssignmentsQuery();
 
   const emptyEval = {
     facultyId: null,
@@ -696,13 +698,62 @@ const CreateFormPage = () => {
   const [submitted, setSubmitted] = useState(false);
   const [submitError, setSubmitError] = useState(null);
 
-  const updateCommonField = (field, value) =>
-    setCommonData((prev) => ({ ...prev, [field]: value }));
+  const updateCommonField = async (field, value) => {
+    setCommonData((prev) => {
+      const newData = { ...prev, [field]: value };
+      
+      // If department changes, fetch faculty
+      if (field === "departmentId" && value) {
+        getFacultyByDept(value).unwrap().then(res => {
+          setFilteredFaculty(res.faculties || []);
+        });
+        // Reset evaluations faculty/courses
+        setEvaluations(prevEvals => prevEvals.map(ev => ({ ...ev, facultyId: null, courseId: null })));
+        setCoursesPerEval({});
+      }
+      
+      // If semester changes, clear the section
+      if (field === "semester") {
+        newData.classSection = "";
+      }
+      
+      // If semester or section changes, re-fetch courses for all evaluations
+      if ((field === "semester" || field === "classSection") && newData.departmentId) {
+        evaluations.forEach((ev, idx) => {
+          if (ev.facultyId && newData.semester && newData.classSection) {
+            fetchCoursesForEval(idx, ev.facultyId, newData);
+          }
+        });
+      }
+      
+      return newData;
+    });
+  };
+
+  const fetchCoursesForEval = (index, facultyId, academicData) => {
+    if (!facultyId || !academicData.departmentId || !academicData.semester || !academicData.classSection) return;
+    
+    getAssignedCourses({
+      facultyId,
+      departmentId: academicData.departmentId,
+      semester: Number(academicData.semester),
+      section: academicData.classSection
+    }).unwrap().then(res => {
+      setCoursesPerEval(prev => ({ ...prev, [index]: res.courses || [] }));
+    });
+  };
 
   const updateEvalField = (index, field, value) => {
     setEvaluations((prev) => {
       const newEvals = [...prev];
       newEvals[index] = { ...newEvals[index], [field]: value };
+      
+      // If faculty changes, fetch courses
+      if (field === "facultyId" && value) {
+        fetchCoursesForEval(index, value, commonData);
+        newEvals[index].courseId = null; // reset course
+      }
+      
       return newEvals;
     });
   };
@@ -714,20 +765,51 @@ const CreateFormPage = () => {
   const filteredDepartments = departments?.departments?.filter(
     (d) => d.school.id === commonData.schoolId
   );
-  const filteredFaculty = faculty?.faculties?.filter((f) =>
-    f.departments?.some((d) => d.id === commonData.departmentId)
-  );
+
   const selectedDepartment = departments?.departments?.find(
     (d) => d.id === commonData.departmentId
   );
+  const cleanDeptName = selectedDepartment?.departmentName?.trim();
   
-  // Normalize names for robust matching with constants.js
-  const cleanDeptName = selectedDepartment?.departmentName?.trim() || "";
-  const availableSections = Object.keys(classSection).find(
-    (key) => key.toLowerCase().trim() === cleanDeptName.toLowerCase().trim()
-  ) ? classSection[Object.keys(classSection).find(
-    (key) => key.toLowerCase().trim() === cleanDeptName.toLowerCase().trim()
-  )] : [];
+  const availableSections = useMemo(() => {
+    let rawSections = [];
+    if (cleanDeptName) {
+      const normalize = (str) => str.toLowerCase().replace(/&/g, 'and').replace(/[^a-z0-9]/g, '');
+      const normDept = normalize(cleanDeptName);
+      
+      const matchedKey = Object.keys(classSection).find(k => {
+        const normKey = normalize(k);
+        return normDept.includes(normKey) || normKey.includes(normDept);
+      });
+      
+      if (matchedKey) rawSections = classSection[matchedKey];
+    }
+    
+    if (!commonData.semester) return rawSections;
+    
+    const semStr = String(commonData.semester);
+    const romanMap = { 2: "II", 4: "IV", 6: "VI", 8: "VIII", 10: "X" };
+    const roman = romanMap[commonData.semester];
+    
+    return rawSections.filter(section => {
+      const s = section.toUpperCase();
+      const romanMap = { 2: "II", 4: "IV", 6: "VI", 8: "VIII", 10: "X" };
+      const selectedRoman = romanMap[commonData.semester];
+      const selectedNum = String(commonData.semester);
+      
+      // Extract all standalone numbers and Roman numerals from the section name
+      const indicators = s.match(/\b(II|IV|VI|VIII|X|[0-9]+)\b/g) || [];
+      
+      // Also check for common patterns like "Sem 2" or "2A" just in case \b is tricky
+      const hasDirectNum = s.includes(` ${selectedNum}`) || s.includes(`${selectedNum}A`) || s.includes(`${selectedNum}B`) || s.includes(`${selectedNum}C`);
+      const hasDirectRoman = selectedRoman && s.includes(` ${selectedRoman}`);
+
+      return indicators.includes(selectedNum) || 
+             (selectedRoman && indicators.includes(selectedRoman)) ||
+             hasDirectNum ||
+             hasDirectRoman;
+    });
+  }, [cleanDeptName, commonData.semester]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -1031,36 +1113,21 @@ const CreateFormPage = () => {
                             options={filteredFaculty || []}
                             optionLabel="facultyName"
                             optionValue="id"
-                            onChange={(e) => {
-                              updateEvalField(index, "facultyId", e.value);
-                              // Reset course when faculty changes to prevent mismatched assignments
-                              updateEvalField(index, "courseId", null);
-                            }}
+                            onChange={(e) => updateEvalField(index, "facultyId", e.value)}
                             placeholder="Select Faculty"
                             className="w-full"
                             filter
                           />
                           <Dropdown
                             value={ev.courseId}
-                            options={
-                              ev.facultyId && commonData.departmentId
-                                ? (courses?.courses || []).filter((c) =>
-                                    assignments?.assignments?.some(
-                                      (a) =>
-                                        a.facultyId === ev.facultyId &&
-                                        a.courseId === c.id &&
-                                        a.departmentId === commonData.departmentId
-                                    )
-                                  )
-                                : []
-                            }
+                            options={coursesPerEval[index] || []}
                             optionLabel="courseName"
                             optionValue="id"
                             onChange={(e) => updateEvalField(index, "courseId", e.value)}
-                            placeholder="Select Course"
+                            placeholder={!ev.facultyId ? "Select Faculty First" : "Select Course"}
                             className="w-full"
+                            disabled={!ev.facultyId || !commonData.semester || !commonData.classSection}
                             filter
-                            disabled={!ev.facultyId}
                           />
                         </div>
 
