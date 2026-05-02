@@ -234,7 +234,7 @@
 
 
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Card } from 'primereact/card';
 import { Button } from 'primereact/button';
 import { DataTable } from 'primereact/datatable';
@@ -243,6 +243,7 @@ import { Dropdown } from 'primereact/dropdown';
 import { Message } from 'primereact/message';
 import { Dialog } from 'primereact/dialog';
 import * as XLSX from 'xlsx';
+import { classSection } from '../constants';
 import {
   useGetAssignmentsQuery,
   useAddAssignmentMutation,
@@ -263,6 +264,39 @@ const CourseAssignPage = () => {
   const [selectedSection, setSelectedSection] = useState("");
   const [editingId, setEditingId] = useState(null);
   const [submitted, setSubmitted] = useState(false);
+
+  const availableSections = useMemo(() => {
+    if (!selectedDepartment || !selectedSemester) return [];
+    
+    const cleanDeptName = selectedDepartment.departmentName?.trim();
+    if (!cleanDeptName) return [];
+
+    const normalize = (str) => str.toLowerCase().replace(/&/g, 'and').replace(/[^a-z0-9]/g, '');
+    const normDept = normalize(cleanDeptName);
+    
+    const matchedKey = Object.keys(classSection).find(k => {
+      const normKey = normalize(k);
+      return normDept.includes(normKey) || normKey.includes(normDept);
+    });
+    
+    let rawSections = matchedKey ? classSection[matchedKey] : [];
+    
+    const semStr = String(selectedSemester);
+    const romanMap = { 1: "I", 2: "II", 3: "III", 4: "IV", 5: "V", 6: "VI", 7: "VII", 8: "VIII", 9: "IX", 10: "X" };
+    const selectedRoman = romanMap[selectedSemester];
+    
+    return rawSections.filter(section => {
+      const s = section.toUpperCase();
+      const indicators = s.match(/\b(II|IV|VI|VIII|X|[0-9]+)\b/g) || [];
+      const hasDirectNum = s.includes(` ${semStr}`) || s.includes(`${semStr}A`) || s.includes(`${semStr}B`) || s.includes(`${semStr}C`);
+      const hasDirectRoman = selectedRoman && s.includes(` ${selectedRoman}`);
+
+      return indicators.includes(semStr) || 
+             (selectedRoman && indicators.includes(selectedRoman)) ||
+             hasDirectNum ||
+             hasDirectRoman;
+    });
+  }, [selectedDepartment, selectedSemester]);
 
   // Bulk Upload States
   const [showBulkUpload, setShowBulkUpload] = useState(false);
@@ -406,7 +440,9 @@ const CourseAssignPage = () => {
     const ws = XLSX.utils.json_to_sheet([{
       "Course Name": "",
       "Faculty Name": "",
-      "Department": ""
+      "Department": "",
+      "Semester": "",
+      "Section": ""
     }]);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Template");
@@ -630,17 +666,18 @@ const CourseAssignPage = () => {
                     />
                   </div>
 
-                  <div className="flex flex-col gap-3">
+                   <div className="flex flex-col gap-3">
                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Class Section</label>
                     <Dropdown
                       value={selectedSection}
-                      options={[]} // Placeholder for sections
+                      options={availableSections}
                       onChange={(e) => setSelectedSection(e.value)}
                       placeholder="Select Section"
                       className="w-full rounded-2xl border-slate-100 bg-slate-50/50 min-h-[64px] flex items-center px-2"
                       filter
-                      editable
+                      disabled={!selectedSemester}
                     />
+                  </div>
                   </div>
                 </div>
 

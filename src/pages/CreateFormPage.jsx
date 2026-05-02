@@ -762,6 +762,12 @@ const CreateFormPage = () => {
     setEvaluations((prev) => [...prev, { ...emptyEval }]);
   };
 
+  const removeSubject = (index) => {
+    if (evaluations.length > 1) {
+      setEvaluations((prev) => prev.filter((_, i) => i !== index));
+    }
+  };
+
   const filteredDepartments = departments?.departments?.filter(
     (d) => d.school.id === commonData.schoolId
   );
@@ -1104,7 +1110,32 @@ const CreateFormPage = () => {
                           boxShadow: "inset 0 2px 4px rgba(0,0,0,0.02)",
                         }}
                       >
+                        <div
+                        style={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          alignItems: "center",
+                          marginBottom: 20,
+                        }}
+                      >
                         <SectionHeading>Subject {index + 1}</SectionHeading>
+                        {evaluations.length > 1 && (
+                          <Button
+                            type="button"
+                            icon="pi pi-trash"
+                            className="p-button-danger p-button-text"
+                            onClick={() => removeSubject(index)}
+                            style={{
+                              color: MR.maroon,
+                              padding: "4px 8px",
+                              height: "auto",
+                              fontSize: "14px",
+                            }}
+                            tooltip="Remove this subject"
+                            tooltipOptions={{ position: "left" }}
+                          />
+                        )}
+                      </div>
 
                         {/* Subject details */}
                         <div style={{ ...styles.grid2, marginBottom: 24 }}>
