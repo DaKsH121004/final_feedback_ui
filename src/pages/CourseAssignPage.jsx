@@ -700,7 +700,6 @@ const CourseAssignPage = () => {
               </form>
             </div>
           </Card>
-        </motion.div>
 
         {/* List Card: Active Assignments */}
         <Card className="shadow-2xl rounded-[2.5rem] border-none overflow-hidden bg-white/80 backdrop-blur-sm">
