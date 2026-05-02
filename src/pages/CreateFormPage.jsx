@@ -721,7 +721,18 @@ const CreateFormPage = () => {
     (d) => d.id === commonData.departmentId
   );
   const cleanDeptName = selectedDepartment?.departmentName?.trim();
-  const availableSections = classSection[cleanDeptName] || [];
+  
+  // Filter sections based on selected semester
+  const availableSections = (classSection[cleanDeptName] || []).filter(section => {
+    if (!commonData.semester) return true;
+    const sem = String(commonData.semester);
+    const romanMap = { 2: "II", 4: "IV", 6: "VI", 8: "VIII", 10: "X" };
+    const roman = romanMap[commonData.semester];
+    
+    // Match the semester number (e.g., "4") or Roman numeral (e.g., "IV")
+    // We check for the number followed by a letter or space, or the roman numeral as a whole word
+    return section.includes(sem) || (roman && section.includes(roman));
+  });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -987,7 +998,10 @@ const CreateFormPage = () => {
                       <Dropdown
                         value={commonData.semester}
                         options={semester}
-                        onChange={(e) => updateCommonField("semester", e.value)}
+                        onChange={(e) => {
+                          updateCommonField("semester", e.value);
+                          updateCommonField("classSection", "");
+                        }}
                         placeholder="Select Semester"
                         className="w-full"
                         filter
