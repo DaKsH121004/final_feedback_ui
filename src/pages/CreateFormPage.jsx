@@ -1109,32 +1109,29 @@ const CreateFormPage = () => {
                           boxShadow: "inset 0 2px 4px rgba(0,0,0,0.02)",
                         }}
                       >
-                        <div
-                        style={{
-                          display: "flex",
-                          justifyContent: "space-between",
-                          alignItems: "center",
-                          marginBottom: 20,
-                        }}
-                      >
-                        <SectionHeading>Subject {index + 1}</SectionHeading>
-                        {evaluations.length > 1 && (
-                          <Button
-                            type="button"
-                            icon="pi pi-trash"
-                            className="p-button-danger p-button-text"
-                            onClick={() => removeSubject(index)}
-                            style={{
-                              color: MR.maroon,
-                              padding: "4px 8px",
-                              height: "auto",
-                              fontSize: "14px",
-                            }}
-                            tooltip="Remove this subject"
-                            tooltipOptions={{ position: "left" }}
-                          />
-                        )}
-                      </div>
+                        <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
+                          <span style={{ fontSize: 11, fontWeight: 700, color: MR.maroon, textTransform: "uppercase", letterSpacing: "0.1em", fontFamily: "sans-serif", whiteSpace: "nowrap" }}>
+                            Subject {index + 1}
+                          </span>
+                          <div style={{ flex: 1, height: 1, background: `linear-gradient(90deg, rgba(201,168,76,0.5), transparent)` }} />
+                          {evaluations.length > 1 && (
+                            <Button
+                              type="button"
+                              label="Remove"
+                              icon="pi pi-trash"
+                              className="p-button-text p-button-danger"
+                              onClick={() => removeSubject(index)}
+                              style={{
+                                color: MR.maroon,
+                                fontSize: "11px",
+                                fontWeight: 700,
+                                textTransform: "uppercase",
+                                padding: "4px 8px",
+                                height: "auto"
+                              }}
+                            />
+                          )}
+                        </div>
 
                         {/* Subject details */}
                         <div style={{ ...styles.grid2, marginBottom: 24 }}>
