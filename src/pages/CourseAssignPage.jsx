@@ -678,29 +678,29 @@ const CourseAssignPage = () => {
                       disabled={!selectedSemester}
                     />
                   </div>
-                  </div>
                 </div>
 
-              <div className="flex justify-end items-center gap-6 pt-6 border-t border-slate-100">
-                {editingId && (
+                <div className="flex justify-end items-center gap-6 pt-6 border-t border-slate-100">
+                  {editingId && (
+                    <Button
+                      type="button"
+                      label="Discard Changes"
+                      className="p-button-text p-button-secondary font-black text-[10px] uppercase tracking-widest px-8 h-14"
+                      onClick={resetForm}
+                    />
+                  )}
                   <Button
-                    type="button"
-                    label="Discard Changes"
-                    className="p-button-text p-button-secondary font-black text-[10px] uppercase tracking-widest px-8 h-14"
-                    onClick={resetForm}
+                    label={editingId ? "Update Assignment" : "Finalize Assignment"}
+                    icon={editingId ? "pi pi-sync" : "pi pi-check-circle"}
+                    className="rounded-2xl font-black text-[10px] uppercase tracking-widest px-12 h-14 shadow-2xl shadow-red-900/20 border-none transition-all duration-300 hover:scale-105 active:scale-95"
+                    style={{ background: 'linear-gradient(135deg, #701515 0%, #4a0d0d 100%)', color: '#fff' }}
+                    type="submit"
                   />
-                )}
-                <Button
-                  label={editingId ? "Update Assignment" : "Finalize Assignment"}
-                  icon={editingId ? "pi pi-sync" : "pi pi-check-circle"}
-                  className="rounded-2xl font-black text-[10px] uppercase tracking-widest px-12 h-14 shadow-2xl shadow-red-900/20 border-none transition-all duration-300 hover:scale-105 active:scale-95"
-                  style={{ background: 'linear-gradient(135deg, #701515 0%, #4a0d0d 100%)', color: '#fff' }}
-                  type="submit"
-                />
-              </div>
-            </form>
-          </div>
-        </Card>
+                </div>
+              </form>
+            </div>
+          </Card>
+        </motion.div>
 
         {/* List Card: Active Assignments */}
         <Card className="shadow-2xl rounded-[2.5rem] border-none overflow-hidden bg-white/80 backdrop-blur-sm">

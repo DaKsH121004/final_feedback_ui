@@ -632,7 +632,6 @@ const styles = {
     textAlign: "center",
     padding: "16px 24px",
     fontSize: 12,
-    color: MR.slate500,
     background: `linear-gradient(135deg, ${MR.maroonDark}, ${MR.maroon})`,
     color: MR.goldLight,
     fontFamily: "sans-serif",
