@@ -378,6 +378,7 @@ import {
   useGetCoursesQuery,
   useAddFeedbackMutation,
   useValidateFormQuery,
+  useGetAssignmentsQuery,
 } from "../services/api";
 
 import { classSection, RATING_QUESTIONS, semester } from "../constants";
@@ -662,6 +663,8 @@ const CreateFormPage = () => {
     isLoading: loading,
     isError,
   } = useValidateFormQuery(token, { skip: !token });
+  
+  const { data: assignments } = useGetAssignmentsQuery();
 
   const emptyEval = {
     facultyId: null,
@@ -1022,20 +1025,36 @@ const CreateFormPage = () => {
                             options={filteredFaculty || []}
                             optionLabel="facultyName"
                             optionValue="id"
-                            onChange={(e) => updateEvalField(index, "facultyId", e.value)}
+                            onChange={(e) => {
+                              updateEvalField(index, "facultyId", e.value);
+                              // Reset course when faculty changes to prevent mismatched assignments
+                              updateEvalField(index, "courseId", null);
+                            }}
                             placeholder="Select Faculty"
                             className="w-full"
                             filter
                           />
                           <Dropdown
                             value={ev.courseId}
-                            options={courses?.courses || []}
+                            options={
+                              ev.facultyId && commonData.departmentId
+                                ? (courses?.courses || []).filter((c) =>
+                                    assignments?.assignments?.some(
+                                      (a) =>
+                                        a.facultyId === ev.facultyId &&
+                                        a.courseId === c.id &&
+                                        a.departmentId === commonData.departmentId
+                                    )
+                                  )
+                                : []
+                            }
                             optionLabel="courseName"
                             optionValue="id"
                             onChange={(e) => updateEvalField(index, "courseId", e.value)}
                             placeholder="Select Course"
                             className="w-full"
                             filter
+                            disabled={!ev.facultyId}
                           />
                         </div>
 

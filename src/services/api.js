@@ -125,9 +125,6 @@ export const api = createApi({
         url: '/course/bulk-upload',
         method: 'POST',
         data: formData,
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
       }),
       invalidatesTags: ['Courses'],
     }),
@@ -174,9 +171,6 @@ export const api = createApi({
         url: '/assignment/bulk-upload',
         method: 'POST',
         data: formData,
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
       }),
       invalidatesTags: ['Assignments', 'Courses', 'Faculty'],
     }),
