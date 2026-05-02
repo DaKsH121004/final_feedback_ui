@@ -684,8 +684,12 @@ const CreateFormPage = () => {
     classSection: "",
   });
 
-  // Start with 1 subject instead of a fixed 5
+  // Pre-fill 5 subjects as requested
   const [evaluations, setEvaluations] = useState([
+    { ...emptyEval },
+    { ...emptyEval },
+    { ...emptyEval },
+    { ...emptyEval },
     { ...emptyEval },
   ]);
 
@@ -707,14 +711,6 @@ const CreateFormPage = () => {
     setEvaluations((prev) => [...prev, { ...emptyEval }]);
   };
 
-  const removeSubject = (index) => {
-    if (evaluations.length > 1) {
-      setEvaluations((prev) => prev.filter((_, i) => i !== index));
-    } else {
-      alert("At least one subject is required.");
-    }
-  };
-
   const filteredDepartments = departments?.departments?.filter(
     (d) => d.school.id === commonData.schoolId
   );
@@ -724,19 +720,14 @@ const CreateFormPage = () => {
   const selectedDepartment = departments?.departments?.find(
     (d) => d.id === commonData.departmentId
   );
-  const cleanDeptName = selectedDepartment?.departmentName?.trim();
   
-  // Filter sections based on selected semester
-  const availableSections = (classSection[cleanDeptName] || []).filter(section => {
-    if (!commonData.semester) return true;
-    const sem = String(commonData.semester);
-    const romanMap = { 2: "II", 4: "IV", 6: "VI", 8: "VIII", 10: "X" };
-    const roman = romanMap[commonData.semester];
-    
-    // Match the semester number (e.g., "4") or Roman numeral (e.g., "IV")
-    // We check for the number followed by a letter or space, or the roman numeral as a whole word
-    return section.includes(sem) || (roman && section.includes(roman));
-  });
+  // Normalize names for robust matching with constants.js
+  const cleanDeptName = selectedDepartment?.departmentName?.trim() || "";
+  const availableSections = Object.keys(classSection).find(
+    (key) => key.toLowerCase().trim() === cleanDeptName.toLowerCase().trim()
+  ) ? classSection[Object.keys(classSection).find(
+    (key) => key.toLowerCase().trim() === cleanDeptName.toLowerCase().trim()
+  )] : [];
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -1002,10 +993,7 @@ const CreateFormPage = () => {
                       <Dropdown
                         value={commonData.semester}
                         options={semester}
-                        onChange={(e) => {
-                          updateCommonField("semester", e.value);
-                          updateCommonField("classSection", "");
-                        }}
+                        onChange={(e) => updateCommonField("semester", e.value)}
                         placeholder="Select Semester"
                         className="w-full"
                         filter
@@ -1034,30 +1022,7 @@ const CreateFormPage = () => {
                           boxShadow: "inset 0 2px 4px rgba(0,0,0,0.02)",
                         }}
                       >
-                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-                          <SectionHeading>Subject {index + 1}</SectionHeading>
-                          {evaluations.length > 1 && (
-                            <button
-                              type="button"
-                              onClick={() => removeSubject(index)}
-                              style={{
-                                background: "none",
-                                border: "none",
-                                color: MR.maroon,
-                                fontSize: 12,
-                                fontWeight: 700,
-                                cursor: "pointer",
-                                textTransform: "uppercase",
-                                letterSpacing: "0.05em",
-                                opacity: 0.7,
-                              }}
-                              onMouseOver={(e) => (e.target.style.opacity = 1)}
-                              onMouseOut={(e) => (e.target.style.opacity = 0.7)}
-                            >
-                              ✕ Remove
-                            </button>
-                          )}
-                        </div>
+                        <SectionHeading>Subject {index + 1}</SectionHeading>
 
                         {/* Subject details */}
                         <div style={{ ...styles.grid2, marginBottom: 24 }}>
