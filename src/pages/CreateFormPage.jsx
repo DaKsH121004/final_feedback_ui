@@ -1078,8 +1078,9 @@ const CreateFormPage = () => {
                           <Dropdown
                             value={ev.courseId}
                             options={
-                              ev.facultyId && commonData.departmentId
+                              ev.facultyId && commonData.departmentId && commonData.semester
                                 ? (courses?.courses || []).filter((c) =>
+                                    c.semester === commonData.semester &&
                                     assignments?.assignments?.some(
                                       (a) =>
                                         a.facultyId === ev.facultyId &&
