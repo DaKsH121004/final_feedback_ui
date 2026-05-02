@@ -684,12 +684,8 @@ const CreateFormPage = () => {
     classSection: "",
   });
 
-  // Pre-fill 5 subjects as requested
+  // Start with 1 subject instead of a fixed 5
   const [evaluations, setEvaluations] = useState([
-    { ...emptyEval },
-    { ...emptyEval },
-    { ...emptyEval },
-    { ...emptyEval },
     { ...emptyEval },
   ]);
 
@@ -709,6 +705,14 @@ const CreateFormPage = () => {
 
   const addMoreSubject = () => {
     setEvaluations((prev) => [...prev, { ...emptyEval }]);
+  };
+
+  const removeSubject = (index) => {
+    if (evaluations.length > 1) {
+      setEvaluations((prev) => prev.filter((_, i) => i !== index));
+    } else {
+      alert("At least one subject is required.");
+    }
   };
 
   const filteredDepartments = departments?.departments?.filter(
@@ -1030,7 +1034,30 @@ const CreateFormPage = () => {
                           boxShadow: "inset 0 2px 4px rgba(0,0,0,0.02)",
                         }}
                       >
-                        <SectionHeading>Subject {index + 1}</SectionHeading>
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+                          <SectionHeading>Subject {index + 1}</SectionHeading>
+                          {evaluations.length > 1 && (
+                            <button
+                              type="button"
+                              onClick={() => removeSubject(index)}
+                              style={{
+                                background: "none",
+                                border: "none",
+                                color: MR.maroon,
+                                fontSize: 12,
+                                fontWeight: 700,
+                                cursor: "pointer",
+                                textTransform: "uppercase",
+                                letterSpacing: "0.05em",
+                                opacity: 0.7,
+                              }}
+                              onMouseOver={(e) => (e.target.style.opacity = 1)}
+                              onMouseOut={(e) => (e.target.style.opacity = 0.7)}
+                            >
+                              ✕ Remove
+                            </button>
+                          )}
+                        </div>
 
                         {/* Subject details */}
                         <div style={{ ...styles.grid2, marginBottom: 24 }}>
